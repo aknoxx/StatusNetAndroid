@@ -13,7 +13,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
-// CHANGE
+// CHANGE ONE
 
 public class HomeActivity extends Activity {
     /** Called when the activity is first created. */
