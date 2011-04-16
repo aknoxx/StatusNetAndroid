@@ -13,6 +13,8 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
+import at.tuwien.dsg.R;
+
 // CHANGE ONE
 
 public class HomeActivity extends Activity {

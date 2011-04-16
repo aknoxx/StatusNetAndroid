@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
+import at.tuwien.dsg.R;
 
 public class OtherActivity extends Activity {
     /** Called when the activity is first created. */
