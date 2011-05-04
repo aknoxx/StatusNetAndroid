@@ -2,6 +2,7 @@ package at.tuwien.dsg.entities;
 
 public class Filter {
 
+	// change for git :)
 	private String name;
 	private String pattern;
 	
