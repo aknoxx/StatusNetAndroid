@@ -1,42 +1,52 @@
 package at.tuwien.dsg.activities;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import twitter4j.QueryResult;
 import twitter4j.Status;
+import twitter4j.Tweet;
 import twitter4j.TwitterException;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+import at.tuwien.dsg.R;
+import at.tuwien.dsg.common.FilterManager;
+import at.tuwien.dsg.common.UserManager;
+import at.tuwien.dsg.entities.Filter;
+import at.tuwien.dsg.views.TweetsListView;
 
 import com.markupartist.android.widget.ActionBar;
 import com.markupartist.android.widget.ActionBar.Action;
 import com.markupartist.android.widget.ActionBar.IntentAction;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.View.OnClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.ListView;
-import android.widget.Toast;
-import at.tuwien.dsg.common.*;
-
-import at.tuwien.dsg.R;
-
 public class Home extends Activity {
 	
-	private static UserManagement userManagement;
-	private static final String TAG = "Home";
+	private static UserManager userManager;
+	private static final String TAG = "HOME";
 	
 	private static final int ACTIVITY_EXPORT = 1337;
 	private static final int ACTIVITY_IMPORT = 1338;
@@ -48,33 +58,43 @@ public class Home extends Activity {
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
+		Log.d(TAG, "onCreate()");
+		
         super.onCreate(savedInstanceState);
-        
-        //ListView tweetsList = (ListView) findViewById(R.id.tweet_list); 
-        //tweetsList.setAdapter(new ArrayAdapter<String>(this,R.layout.list_item,COUNTRIES)); 
-        
-       /* setListAdapter(new ArrayAdapter<String>(this, R.layout.list_item, COUNTRIES));
-
-        ListView lv = getListView();
-        lv.setTextFilterEnabled(true);
-
-        lv.setOnItemClickListener(new OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                int position, long id) {
-              // When clicked, show a toast with the TextView text
-              Toast.makeText(getApplicationContext(), "Test",
-                  Toast.LENGTH_SHORT).show();
-            }
-          });*/
-        
-        userManagement = UserManagement.getInstance();
+                
+        userManager = UserManager.getInstance();
         
         SharedPreferences settings = getPreferences(MODE_PRIVATE);
 		String accessToken = settings.getString("oAuthAccessToken", null);
 		String accessTokenSecret = settings.getString("oAuthAccessTokenSecret", null);
 		
 		if(accessToken != null && accessTokenSecret != null) {
-			UserManagement.getInstance().loginAuto(accessToken, accessTokenSecret);
+			UserManager.getInstance().loginAuto(accessToken, accessTokenSecret);
+			
+			// TODO check if login was successful!!!
+			
+			/*Button btnSearch = (Button) findViewById(R.id.btn_search);
+			btnSearch.setOnClickListener(new OnClickListener() {
+	            @Override
+	            public void onClick(View v) {
+	            	
+	            	EditText et_search = (EditText) findViewById(R.id.et_search);
+	            	String query = et_search.getText().toString();
+	            	
+	            	QueryResult result = null;
+	            	try {
+	            		result = UserManager.getInstance().search(query);
+					} catch (TwitterException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					List<Tweet> tweets = result.getTweets();
+					displaySearch(tweets);
+	            }
+	        });*/
+			
+			
 			displayTimeline();
 		}        
 		else {
@@ -109,7 +129,7 @@ public class Home extends Activity {
             	
             	String authUrl = null;
 				try {
-					authUrl = UserManagement.getInstance().getAuthenticationURL();
+					authUrl = UserManager.getInstance().getAuthenticationURL();
 				} catch (TwitterException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -126,6 +146,8 @@ public class Home extends Activity {
         		}*/
             }
         });
+        
+        
 	}
 	
 	@Override
@@ -160,32 +182,6 @@ public class Home extends Activity {
 	    setLoginView();
 	    //this.menu.removeItem(LOGOUT_ID);
     }
-    
-	/*
-	private void login() {
-		LoginHelper.login(this);
-	}
-	
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		
-		Toast.makeText(this, "result", Toast.LENGTH_LONG).show();
-		
-		switch(requestCode){
-        /*case ACTIVITY_EXPORT:
-        	if (resultCode == FileManager.SUCCESS_RETURN_CODE)
-        		showToast("Meals exported successfuly!");
-        	else
-        		showToast("Error while exporting Meals!");
-	        break;
-        case ACTIVITY_IMPORT:  	
-        	if(resultCode == FileManager.SUCCESS_RETURN_CODE)
-        		showToast("Meals imported successfuly!");
-        	else
-        		showToast("Error while imoprting Meals!");
-		}
-	}*/
 	
 	private void displayTimeline() { 
 		
@@ -201,7 +197,7 @@ public class Home extends Activity {
         
         List<Status> userTimeline = null;
 		try {
-			userTimeline = UserManagement.getInstance().getTwitter().getUserTimeline();
+			userTimeline = UserManager.getInstance().getTwitter().getHomeTimeline();
 		} catch (TwitterException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -219,26 +215,64 @@ public class Home extends Activity {
         
         String regexLG = "LG\\s+\\w+\\.\\w+\\?date=\\d{2}\\.\\d{2}\\.\\d{4}&duration=\\d{4}\\s+#\\w+";
         
+        Filter lg_Filter = new Filter("LG",
+        		regexLG);
+        
+        FilterManager fm = new FilterManager();
+        fm.addFilter(lg_Filter);
+        fm.setFilter(lg_Filter);
+        
         // SR proofread.Blog http://www.ikangai.com #blog 
         //String regexSR = "SR\\s+\\w+\\.\\w+\\?date=\\d{2}\\.\\d{2}\\.\\d{4}&duration=\\d{4}\\s+#\\w+";
         
         String regex2 = "#.{1,}";
         
-        Pattern p = Pattern.compile(regexLG);
-        
-        for (Status status : userTimeline) {
-        	if(p.matcher(status.getText()).matches()) {
+        /*for (Status status : userTimeline) {
+        	if(fm.match(status.getText())) {
         		msgs.add("PATTERN MATCH " + status.getText());
         	}			
         	msgs.add(status.getText());
-		}
+		}*/
         
-        ListView tweetsList = (ListView) findViewById(R.id.tweet_list); 
-        tweetsList.setAdapter(new ArrayAdapter<String>(this,R.layout.list_item,msgs)); 
+        ListView tweetsListView = (ListView) findViewById(R.id.tweet_list); 
+        
+        TimelineAdapter adapter = new TimelineAdapter(this, R.layout.list_item, (ArrayList<Status>) userTimeline);
+        
+        tweetsListView.setAdapter(adapter);
+        
+        //TweetsListView tweetsListView = new TweetsListView(this, (ArrayList<Status>) userTimeline);
+        //tweetsListView.notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
 	}
+	
+	/*private void displaySearch(List<Tweet> tweets) { 
+		
+		setContentView(R.layout.home_tweets);
+		final ActionBar actionBar = (ActionBar) findViewById(R.id.actionbar);
+        //actionBar.setHomeAction(new IntentAction(this, createIntent(this), R.drawable.ic_title_home_demo));
+        actionBar.setTitle("Search");
+
+        final Action shareAction = new IntentAction(this, createShareIntent(), R.drawable.ic_title_share_default);
+        actionBar.addAction(shareAction);
+        final Action otherAction = new IntentAction(this, new Intent(this, OtherActivity.class), R.drawable.ic_title_export_default);
+        actionBar.addAction(otherAction);
+       
+        ListView tweetsListView = (ListView) findViewById(R.id.tweet_list); 
+        
+        SearchAdapter adapter = new SearchAdapter(this, R.layout.list_item, (ArrayList<Tweet>) tweets);
+        
+        tweetsListView.setAdapter(adapter);
+        
+        //TweetsListView tweetsListView = new TweetsListView(this, (ArrayList<Status>) userTimeline);
+        //tweetsListView.notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
+	}*/
 	
 	@Override
 	protected void onNewIntent(Intent intent) {
+		
+		Log.d(TAG, "onNewIntent()");
+		
 		Toast.makeText(this, "new Intent", Toast.LENGTH_LONG).show();
 		
 		super.onNewIntent(intent);
@@ -246,12 +280,12 @@ public class Home extends Activity {
 		Uri uri = intent.getData();
 		if(uri != null) {
 			try {
-				UserManagement.getInstance().finalizeOAuthentication(uri);
+				UserManager.getInstance().finalizeOAuthentication(uri);
 				
 				SharedPreferences settings = getPreferences(0);
 			    SharedPreferences.Editor editor = settings.edit();
-			    editor.putString("oAuthAccessToken", UserManagement.getInstance().getReqToken());
-			    editor.putString("oAuthAccessTokenSecret", UserManagement.getInstance().getSecretToken());
+			    editor.putString("oAuthAccessToken", UserManager.getInstance().getReqToken());
+			    editor.putString("oAuthAccessTokenSecret", UserManager.getInstance().getSecretToken());
 			    editor.commit();
 				
 				displayTimeline();
@@ -260,36 +294,6 @@ public class Home extends Activity {
 				Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
 			}
 		}
-		
-		
-		
-		/*try {
-			UserManagement.getInstance().sendTweeterMessage("hello ");
-		} catch (TwitterException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-		
-		/*Uri uri = intent.getData();
-		if(tweeter.authenticate(uri)) {
-			Toast.makeText(this, "authenticated", Toast.LENGTH_LONG).show();
-		}
-		else {
-			Toast.makeText(this, "NOT authenticated", Toast.LENGTH_LONG).show();
-		}*/
-		
-		/*Uri uri = intent.getData();
-		if(uri != null) {
-			try {
-				tweeter.authenticate(uri);
-			} catch (Exception e) {
-				Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-			}
-		}
-		
-		
-		setContentView(R.layout.list_item);*/
-		
 	}
 	
 	public static Intent createIntent(Context context) {
@@ -305,47 +309,139 @@ public class Home extends Activity {
         return Intent.createChooser(intent, "Share");
     }
     
-    static final String[] COUNTRIES = new String[] {
-        "Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra",
-        "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina",
-        "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan",
-        "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
-        "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia",
-        "Bosnia and Herzegovina", "Botswana", "Bouvet Island", "Brazil", "British Indian Ocean Territory",
-        "British Virgin Islands", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
-        "Cote d'Ivoire", "Cambodia", "Cameroon", "Canada", "Cape Verde",
-        "Cayman Islands", "Central African Republic", "Chad", "Chile", "China",
-        "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", "Congo",
-        "Cook Islands", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
-        "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
-        "East Timor", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea",
-        "Estonia", "Ethiopia", "Faeroe Islands", "Falkland Islands", "Fiji", "Finland",
-        "Former Yugoslav Republic of Macedonia", "France", "French Guiana", "French Polynesia",
-        "French Southern Territories", "Gabon", "Georgia", "Germany", "Ghana", "Gibraltar",
-        "Greece", "Greenland", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guinea", "Guinea-Bissau",
-        "Guyana", "Haiti", "Heard Island and McDonald Islands", "Honduras", "Hong Kong", "Hungary",
-        "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
-        "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos",
-        "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
-        "Macau", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands",
-        "Martinique", "Mauritania", "Mauritius", "Mayotte", "Mexico", "Micronesia", "Moldova",
-        "Monaco", "Mongolia", "Montserrat", "Morocco", "Mozambique", "Myanmar", "Namibia",
-        "Nauru", "Nepal", "Netherlands", "Netherlands Antilles", "New Caledonia", "New Zealand",
-        "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", "North Korea", "Northern Marianas",
-        "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru",
-        "Philippines", "Pitcairn Islands", "Poland", "Portugal", "Puerto Rico", "Qatar",
-        "Reunion", "Romania", "Russia", "Rwanda", "Sqo Tome and Principe", "Saint Helena",
-        "Saint Kitts and Nevis", "Saint Lucia", "Saint Pierre and Miquelon",
-        "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Saudi Arabia", "Senegal",
-        "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands",
-        "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", "South Korea",
-        "Spain", "Sri Lanka", "Sudan", "Suriname", "Svalbard and Jan Mayen", "Swaziland", "Sweden",
-        "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "The Bahamas",
-        "The Gambia", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey",
-        "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Virgin Islands", "Uganda",
-        "Ukraine", "United Arab Emirates", "United Kingdom",
-        "United States", "United States Minor Outlying Islands", "Uruguay", "Uzbekistan",
-        "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Wallis and Futuna", "Western Sahara",
-        "Yemen", "Yugoslavia", "Zambia", "Zimbabwe"
-      };
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy()");
+        super.onDestroy();
+    }
+       
+    @Override
+	protected void onPause() {
+    	Log.d(TAG, "onPause()");
+		super.onPause();
+	}
+
+	@Override
+	protected void onRestart() {
+		Log.d(TAG, "onRestart()");
+		super.onRestart();
+	}
+
+	@Override
+	protected void onResume() {
+		Log.d(TAG, "onResume()");
+		super.onResume();
+	}
+
+	@Override
+	protected void onStart() {
+		Log.d(TAG, "onStart()");
+		super.onStart();
+	}
+	
+	private class TimelineAdapter extends ArrayAdapter<Status> {
+
+        private ArrayList<Status> timeline;
+
+        public TimelineAdapter(Context context, int textViewResourceId, ArrayList<Status> timeline) {
+                super(context, textViewResourceId, timeline);
+                this.timeline = timeline;
+        }
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+                View view = convertView;
+                if (view == null) {
+                    LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    view = vi.inflate(R.layout.list_item, null);
+                }
+                Status status = timeline.get(position);
+                if (status != null) {
+                	
+                	ImageView imageView = (ImageView) findViewById(R.id.img_tweet);
+                	if (imageView != null) {
+                		
+                		URL imageUrl = status.getUser().getProfileImageURL();
+                		
+                		try{ 
+                            HttpURLConnection conn =  (HttpURLConnection)imageUrl.openConnection(); 
+                            conn.setDoInput(true); 
+                            conn.connect(); 
+                            int length = conn.getContentLength(); 
+                            int[] bitmapData =new int[length]; 
+                            byte[] bitmapData2 =new byte[length]; 
+                            InputStream is = conn.getInputStream(); 
+                            Bitmap bmp = BitmapFactory.decodeStream(is); 
+                            imageView.setImageBitmap(bmp); 
+                            } catch (IOException e) 
+                            { 
+                                    //e.printStackTrace(); 
+                            }
+                	}
+                	TextView senderView = (TextView) findViewById(R.id.sender_tweet);
+                	if(senderView != null) {
+                		senderView.setText(status.getUser().getScreenName() + " at "
+                				+ status.getCreatedAt().toLocaleString());
+                	}
+                	TextView msgView = (TextView) findViewById(R.id.msg_tweet);
+                	if(msgView != null) {
+                		msgView.setText(status.getText());
+                	}
+                }             
+                return view;
+        }
+    }
+	
+	private class SearchAdapter extends ArrayAdapter<Tweet> {
+
+        private ArrayList<Tweet> searchResults;
+
+        public SearchAdapter(Context context, int textViewResourceId, ArrayList<Tweet> searchResults) {
+                super(context, textViewResourceId, searchResults);
+                this.searchResults = searchResults;
+        }
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+                View view = convertView;
+                if (view == null) {
+                    LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    view = vi.inflate(R.layout.list_item, null);
+                }
+                Tweet tweet = searchResults.get(position);
+                if (tweet != null) {
+                	
+                	ImageView imageView = (ImageView) findViewById(R.id.img_tweet);
+                	if (imageView != null) {
+                		
+                		String imageUrl = tweet.getProfileImageUrl();
+                		
+                		try{ 
+                			URL url = new URL(imageUrl);
+           
+                            HttpURLConnection conn =  (HttpURLConnection)url.openConnection(); 
+                            conn.setDoInput(true); 
+                            conn.connect(); 
+                            int length = conn.getContentLength(); 
+                            int[] bitmapData =new int[length]; 
+                            byte[] bitmapData2 =new byte[length]; 
+                            InputStream is = conn.getInputStream(); 
+                            Bitmap bmp = BitmapFactory.decodeStream(is); 
+                            imageView.setImageBitmap(bmp); 
+                            } catch (IOException e) 
+                            { 
+                                    //e.printStackTrace(); 
+                            }
+                	}
+                	TextView senderView = (TextView) findViewById(R.id.sender_tweet);
+                	if(senderView != null) {
+                		senderView.setText(tweet.getSource() + " at "
+                				+ tweet.getCreatedAt().toLocaleString());
+                	}
+                	TextView msgView = (TextView) findViewById(R.id.msg_tweet);
+                	if(msgView != null) {
+                		msgView.setText(tweet.getText());
+                	}
+                }             
+                return view;
+        }
+    }
 }

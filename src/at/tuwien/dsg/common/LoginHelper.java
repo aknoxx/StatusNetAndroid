@@ -11,7 +11,7 @@ public class LoginHelper {
 	public static void login(Context context) {
 		try {
 			Toast.makeText(context, "LoginHelper", Toast.LENGTH_LONG).show();
-			String authUrl = UserManagement.getInstance().getAuthenticationURL();
+			String authUrl = UserManager.getInstance().getAuthenticationURL();
 			Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl));
 			i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 			context.startActivity(i);
@@ -25,7 +25,7 @@ public class LoginHelper {
 		Uri uri = intent.getData();
 		if(uri != null) {
 			try {
-				UserManagement.getInstance().finalizeOAuthentication(uri);
+				UserManager.getInstance().finalizeOAuthentication(uri);
 			} catch (TwitterException e) {
 				Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
 			}
