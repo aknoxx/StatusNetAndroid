@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-    <com.markupartist.android.widget.ActionBar
-        android:id="@+id/actionbar"
-        style="@style/ActionBar"
-        />
-
-  	<ListView android:id="@+id/tweet_list"
-			android:layout_width="wrap_content"
-        	android:layout_height="wrap_content"/>
-</LinearLayout>
+ 
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:orientation="horizontal"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+    	>
+	    <EditText android:id="@+id/editText1"     
+	    	android:layout_height="wrap_content" 
+	    	android:layout_width="wrap_content" 
+	    	android:text="from:ikangai"
+	    	android:layout_gravity="left"
+	    	></EditText>
+	    <Button android:text="Find" 
+	    	android:id="@+id/button1" 
+	    	android:layout_width="wrap_content" 
+	    	android:layout_height="wrap_content" 
+	    	android:layout_gravity="right"
+	    	></Button>
+	</LinearLayout>

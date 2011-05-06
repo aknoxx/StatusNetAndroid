@@ -30,7 +30,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import at.tuwien.dsg.R;
@@ -43,7 +45,7 @@ import com.markupartist.android.widget.ActionBar;
 import com.markupartist.android.widget.ActionBar.Action;
 import com.markupartist.android.widget.ActionBar.IntentAction;
 
-public class Home extends Activity {
+public class Home extends ActionBarActivity {
 	
 	private static UserManager userManager;
 	private static final String TAG = "HOME";
@@ -54,6 +56,8 @@ public class Home extends Activity {
 	private static final int LOGOUT_ID = 0;
 	private static final int EXPORT_ID = 1;
 	
+	private static LinearLayout container;
+	
 	private Menu menu;
 	
 	@Override
@@ -63,6 +67,7 @@ public class Home extends Activity {
         super.onCreate(savedInstanceState);
                 
         userManager = UserManager.getInstance();
+        container = (LinearLayout) findViewById(R.id.container);
         
         SharedPreferences settings = getPreferences(MODE_PRIVATE);
 		String accessToken = settings.getString("oAuthAccessToken", null);
@@ -103,15 +108,12 @@ public class Home extends Activity {
     }
 	
 	private void setLoginView() {
-		setContentView(R.layout.home_login);
-    	final ActionBar actionBar = (ActionBar) findViewById(R.id.actionbar);
-        //actionBar.setHomeAction(new IntentAction(this, createIntent(this), R.drawable.ic_title_home_demo));
-        actionBar.setTitle("Home");
-
-        final Action shareAction = new IntentAction(this, createShareIntent(), R.drawable.ic_title_share_default);
-        actionBar.addAction(shareAction);
-        final Action otherAction = new IntentAction(this, new Intent(this, OtherActivity.class), R.drawable.ic_title_export_default);
-        actionBar.addAction(otherAction);
+		//setContentView(R.layout.home_login);
+		
+		LayoutInflater inflater = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);	
+		
+		Button btn = (Button) inflater.inflate(R.layout.login, null);
+	    container.addView(btn);        
         
         Log.d(TAG, "home");
     	
@@ -185,16 +187,17 @@ public class Home extends Activity {
 	
 	private void displayTimeline() { 
 		
-		setContentView(R.layout.home_tweets);
-		final ActionBar actionBar = (ActionBar) findViewById(R.id.actionbar);
-        //actionBar.setHomeAction(new IntentAction(this, createIntent(this), R.drawable.ic_title_home_demo));
-        actionBar.setTitle("Home");
-
-        final Action shareAction = new IntentAction(this, createShareIntent(), R.drawable.ic_title_share_default);
-        actionBar.addAction(shareAction);
-        final Action otherAction = new IntentAction(this, new Intent(this, OtherActivity.class), R.drawable.ic_title_export_default);
-        actionBar.addAction(otherAction);
-        
+		//setContentView(R.layout.home_tweets);
+		
+		//container.removeViewAt(1);
+		LayoutInflater inflater = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);	
+		
+		LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.home_tweets, null);
+		container.addView(ll);
+		ListView lv = (ListView) inflater.inflate(R.layout.tweet_list, null);
+		container.addView(lv);
+		
+		
         List<Status> userTimeline = null;
 		try {
 			userTimeline = UserManager.getInstance().getTwitter().getHomeTimeline();
@@ -295,19 +298,6 @@ public class Home extends Activity {
 			}
 		}
 	}
-	
-	public static Intent createIntent(Context context) {
-        Intent i = new Intent(context, HomeActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        return i;
-    }
-
-    private Intent createShareIntent() {
-        final Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_TEXT, "Shared from the ActionBar widget.");
-        return Intent.createChooser(intent, "Share");
-    }
     
     @Override
     public void onDestroy() {
@@ -385,60 +375,6 @@ public class Home extends Activity {
                 	TextView msgView = (TextView) findViewById(R.id.msg_tweet);
                 	if(msgView != null) {
                 		msgView.setText(status.getText());
-                	}
-                }             
-                return view;
-        }
-    }
-	
-	private class SearchAdapter extends ArrayAdapter<Tweet> {
-
-        private ArrayList<Tweet> searchResults;
-
-        public SearchAdapter(Context context, int textViewResourceId, ArrayList<Tweet> searchResults) {
-                super(context, textViewResourceId, searchResults);
-                this.searchResults = searchResults;
-        }
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-                View view = convertView;
-                if (view == null) {
-                    LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    view = vi.inflate(R.layout.list_item, null);
-                }
-                Tweet tweet = searchResults.get(position);
-                if (tweet != null) {
-                	
-                	ImageView imageView = (ImageView) findViewById(R.id.img_tweet);
-                	if (imageView != null) {
-                		
-                		String imageUrl = tweet.getProfileImageUrl();
-                		
-                		try{ 
-                			URL url = new URL(imageUrl);
-           
-                            HttpURLConnection conn =  (HttpURLConnection)url.openConnection(); 
-                            conn.setDoInput(true); 
-                            conn.connect(); 
-                            int length = conn.getContentLength(); 
-                            int[] bitmapData =new int[length]; 
-                            byte[] bitmapData2 =new byte[length]; 
-                            InputStream is = conn.getInputStream(); 
-                            Bitmap bmp = BitmapFactory.decodeStream(is); 
-                            imageView.setImageBitmap(bmp); 
-                            } catch (IOException e) 
-                            { 
-                                    //e.printStackTrace(); 
-                            }
-                	}
-                	TextView senderView = (TextView) findViewById(R.id.sender_tweet);
-                	if(senderView != null) {
-                		senderView.setText(tweet.getSource() + " at "
-                				+ tweet.getCreatedAt().toLocaleString());
-                	}
-                	TextView msgView = (TextView) findViewById(R.id.msg_tweet);
-                	if(msgView != null) {
-                		msgView.setText(tweet.getText());
                 	}
                 }             
                 return view;
