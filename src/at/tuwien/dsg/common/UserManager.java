@@ -1,8 +1,11 @@
 package at.tuwien.dsg.common;
 
+import java.util.List;
+
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
-import android.widget.Toast;
+import at.tuwien.dsg.entities.NetworkConfig;
 import twitter4j.Query;
 import twitter4j.QueryResult;
 import twitter4j.Twitter;
@@ -12,9 +15,12 @@ import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
 public class UserManager {
+	
+	private static Context ctx;
+	
 	private static UserManager instance;
-	private final static String consumerKey = "wfRZ0ziRJOS07W9KRmAtLQ"; 		
-	private final static String consumerSecret = "PQzIniSepykkKpPQog2a7Se9I0mX0rLasPIgiygaPkE"; 
+	private static String consumerKey; 		
+	private static String consumerSecret; 
 
 	private static final String TAG = "UserManager";
 		
@@ -28,6 +34,8 @@ public class UserManager {
 	private String oAuthAccessToken;
 	private String oAuthAccessTokenSecret;
 	
+	private String currentNetwork;
+	
 	private UserManager() {};
 
 	public static UserManager getInstance() {
@@ -38,34 +46,79 @@ public class UserManager {
 		return instance;
 	}
 	
+	public void setNetworkConfig(List<NetworkConfig> networkConfigs, String networkType) {
+		
+		NetworkConfig config = null;
+		for (NetworkConfig c : networkConfigs) {
+			if(c.getName().equals(networkType)) {
+				config = c;
+				break;
+			}
+		}
+		
+		currentNetwork = networkType;
+		
+		System.setProperty("twitter4j.oauth.consumerKey", config.getConsumerKey()); 
+        System.setProperty("twitter4j.oauth.consumerSecret", config.getConsumerSecret()); 
+        System.setProperty("twitter4j.oauth.accessTokenURL", config.getAccessTokenURL()); 
+        System.setProperty("twitter4j.oauth.authorizationURL", config.getAuthorizationURL()); 
+        System.setProperty("twitter4j.oauth.requestTokenURL", config.getRequestTokenURL()); 
+        System.setProperty("twitter4j.restBaseURL", config.getRestBaseURL()); 
+        System.setProperty("twitter4j.searchBaseURL", config.getSearchBaseURL()); 
+		
+	}
+	
+	public String getCurrentNetwork() {
+		return currentNetwork;
+	}
+	
 	public String getAuthenticationURL() throws TwitterException {
-
+		
 		Log.i(TAG, "login");
-		twitter = new TwitterFactory().getInstance();
-		twitter.setOAuthConsumer(UserManager.getInstance().getConsumerkey(), UserManager.getInstance().getConsumersecret());
-		requestToken = twitter.getOAuthRequestToken(UserManager.getInstance().getCALLBACKURL());
-		String authUrl = requestToken.getAuthenticationURL();
+
+		twitter = new TwitterFactory().getInstance();		
+		
+		requestToken = twitter.getOAuthRequestToken(CALLBACKURL);
+		String authUrl = requestToken.getAuthorizationURL();
 		return authUrl;
+		
+		/*		
+        //cb.setSiteStreamBaseURL("http://sitestream.identi.ca/2b/");
+       // cb.setStreamBaseURL("http://stream.identi.ca/1/");
+        //cb.setUserStreamBaseURL("http://userstream.identi.ca/2/");		
+        // siteStreamBaseURL http://sitestream.twitter.com/2b/
+		// streamBaseURL http://stream.twitter.com/1/
+		// userStreamBaseURL https://userstream.twitter.com/2/
+*/
+	}
+	
+	public void logout() {
+		twitter = null;
 	}
 	
 	public void finalizeOAuthentication(Uri uri) throws TwitterException {
 		Log.d(TAG, "loginIntent");
 		
 		String verifier = uri.getQueryParameter("oauth_verifier");
-		accessToken = UserManager.getInstance().getTwitter().getOAuthAccessToken(UserManager.getInstance().getRequestToken(),verifier);
+		accessToken = twitter.getOAuthAccessToken(requestToken,verifier);
 		oAuthAccessToken = accessToken.getToken();
 		oAuthAccessTokenSecret = accessToken.getTokenSecret();		
 		twitter.setOAuthAccessToken(accessToken);
+
+		System.setProperty("oauth.accessToken", oAuthAccessToken); 
+        System.setProperty("oauth.accessTokenSecret", oAuthAccessTokenSecret);
+		
 		loggedIn = true;
 	}
 	
-	public void loginAuto(String requestToken, String secretToken) {
-		Log.d(TAG, "loginAuto");
-		twitter = new TwitterFactory().getInstance();
-		accessToken = new AccessToken(requestToken, secretToken);
-		twitter.setOAuthConsumer(consumerKey, consumerSecret);
-		twitter.setOAuthAccessToken(accessToken);
-		loggedIn = true;
+	public void setContext(Context context) {
+		this.ctx = context;
+	}
+	
+	public void autoLogin() {   
+        
+        twitter = new TwitterFactory().getInstance();
+        loggedIn = true;
 	}
 
 	public void sendTweeterMessage(String message) throws TwitterException {
@@ -121,7 +174,7 @@ public class UserManager {
 		this.loggedIn = loggedIn;
 	}
 
-	public String getReqToken() {
+	public String getOAuthToken() {
 		return oAuthAccessToken;
 	}
 
@@ -129,14 +182,11 @@ public class UserManager {
 		this.oAuthAccessToken = reqToken;
 	}
 
-	public String getSecretToken() {
+	public String getOAuthTokenSecret() {
 		return oAuthAccessTokenSecret;
 	}
 
 	public void setSecretToken(String secretToken) {
 		this.oAuthAccessTokenSecret = secretToken;
-	}
-	
-	
-	
+	}	
 }
