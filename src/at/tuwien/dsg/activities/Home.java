@@ -57,8 +57,6 @@ public class Home extends ActionBarActivity {
 	
 	private static LinearLayout container;
 	
-	private static AlertDialog alert;
-	
 	private Menu menu;
 	
 	@Override
@@ -142,7 +140,7 @@ public class Home extends ActionBarActivity {
             		        startLogin();
             		    }
             		});
-            		alert = builder.create();
+            		AlertDialog alert = builder.create();
             		alert.show();         		
             	}
             }

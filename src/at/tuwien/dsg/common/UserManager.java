@@ -79,8 +79,8 @@ public class UserManager {
 		twitter = new TwitterFactory().getInstance();		
 		
 		requestToken = twitter.getOAuthRequestToken(CALLBACKURL);
-		String authUrl = requestToken.getAuthorizationURL();
-		return authUrl;
+		String authorizationUrl = requestToken.getAuthorizationURL();
+		return authorizationUrl;
 		
 		/*		
         //cb.setSiteStreamBaseURL("http://sitestream.identi.ca/2b/");
