@@ -12,14 +12,16 @@ import android.os.Bundle;
 
 public class ActionBarActivity extends Activity {
 
+	private ActionBar actionBar;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.container);
+		actionBar = (ActionBar) findViewById(R.id.actionbar);
 		
-		final ActionBar actionBar = (ActionBar) findViewById(R.id.actionbar);
-        actionBar.setTitle("Home");
+        
 
         final Action shareAction = new IntentAction(this, createShareIntent(), R.drawable.ic_title_share_default);
         actionBar.addAction(shareAction);
@@ -27,8 +29,12 @@ public class ActionBarActivity extends Activity {
         actionBar.addAction(searchAction);
 	}
 	
+	public void setTitle(String title) {
+		actionBar.setTitle(title);
+	}
+	
 	public static Intent createIntent(Context context) {
-        Intent i = new Intent(context, HomeActivity.class);
+        Intent i = new Intent(context, ActionSample.class);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         return i;
     }

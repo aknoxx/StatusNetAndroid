@@ -14,10 +14,13 @@ import twitter4j.Tweet;
 import twitter4j.TwitterException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
@@ -28,6 +31,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import at.tuwien.dsg.R;
 import at.tuwien.dsg.common.UserManager;
 
@@ -37,9 +41,16 @@ public class SearchActivity extends ActionBarActivity {
 	private static SearchAdapter adapter;
 	private static ArrayList<Tweet> resultTweets;
 	
+	private static final String NETWORK = "network";
+	private static final int LOGOUT_ID = 0;
+	
+	private Menu menu;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		setTitle("Simple search");
 		
 		container = (LinearLayout) findViewById(R.id.container);
 		
@@ -73,17 +84,19 @@ public class SearchActivity extends ActionBarActivity {
 		QueryResult queryResult = null;
 		Query q = new Query(query);
 		try {
-			queryResult = UserManager.getInstance().getTwitter().search(q);
+			queryResult = UserManager.getInstance().getTwitter().search(q);			
+			resultTweets.clear();
+			resultTweets.addAll((ArrayList<Tweet>) queryResult.getTweets());
+			adapter.notifyDataSetChanged();
 		} catch (TwitterException e) {
-			e.printStackTrace();
-		}		
-		
-		resultTweets.clear();
-		resultTweets.addAll((ArrayList<Tweet>) queryResult.getTweets());
-		adapter.notifyDataSetChanged();
+			Toast.makeText(getApplicationContext(), "Invalid search string!", 
+					Toast.LENGTH_LONG).show();
+			
+			// TODO what happens here with identi.ca?
+			//e.printStackTrace();
+		}
 	}
-	
-	
+		
 	private class SearchAdapter extends ArrayAdapter<Tweet> {
 
         private ArrayList<Tweet> searchResults;
@@ -136,5 +149,39 @@ public class SearchActivity extends ActionBarActivity {
                 }             
                 return view;
         }
+    }
+	
+	@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        this.menu = menu;
+        menu.add(0, LOGOUT_ID, 0, "Logout");
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        switch(item.getItemId()) {
+        case LOGOUT_ID:        
+        	logout();        	
+	        return true;
+        }
+        return super.onMenuItemSelected(featureId, item);
+    }
+	
+    private void logout() {
+    	UserManager.getInstance().logout();
+    	
+    	SharedPreferences settings = getPreferences(0);
+	    SharedPreferences.Editor editor = settings.edit();
+	    editor.putString(NETWORK, "");
+	    editor.commit();
+	    
+	    System.setProperty("oauth.accessToken", ""); 
+        System.setProperty("oauth.accessTokenSecret", "");
+        
+        UserManager.destroyInstance();
+	    
+        startActivity(new Intent(SearchActivity.this, HomeActivity.class));
     }
 }

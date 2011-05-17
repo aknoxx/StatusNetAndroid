@@ -46,6 +46,10 @@ public class UserManager {
 		return instance;
 	}
 	
+	public static void destroyInstance() {
+		instance = null;
+	}
+	
 	public void setNetworkConfig(List<NetworkConfig> networkConfigs, String networkType) {
 		
 		NetworkConfig config = null;

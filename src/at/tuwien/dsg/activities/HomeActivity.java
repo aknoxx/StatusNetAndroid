@@ -1,108 +1,343 @@
 package at.tuwien.dsg.activities;
 
-import com.markupartist.android.widget.ActionBar;
-import com.markupartist.android.widget.ActionBar.Action;
-import com.markupartist.android.widget.ActionBar.IntentAction;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
-import android.app.Activity;
+import twitter4j.Status;
+import twitter4j.TwitterException;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
-
 import at.tuwien.dsg.R;
+import at.tuwien.dsg.common.FilterManager;
+import at.tuwien.dsg.common.UserManager;
+import at.tuwien.dsg.entities.Filter;
+import at.tuwien.dsg.entities.NetworkConfig;
+import at.tuwien.dsg.util.NetworkConfigParser;
 
-// CHANGE ONE
-
-public class HomeActivity extends Activity {
-    /** Called when the activity is first created. */
-    @Override
+public class HomeActivity extends ActionBarActivity {
+	
+	private static UserManager userManager;
+	private static final String TAG = "HOME";
+	
+	private static final String NETWORK = "network";
+	private static final String OAUTH_TOKEN = "oAuthToken";
+	private static final String OAUTH_TOKEN_SECRET = "oAuthTokenSecret";
+	
+	private static final int ACTIVITY_EXPORT = 1337;
+	private static final int ACTIVITY_IMPORT = 1338;
+	
+	private static final int LOGOUT_ID = 0;
+	private static final int EXPORT_ID = 1;
+	
+	private static LinearLayout container;
+	
+	@Override
     public void onCreate(Bundle savedInstanceState) {
+		Log.d(TAG, "onCreate()");		
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-
-        final ActionBar actionBar = (ActionBar) findViewById(R.id.actionbar);
-        //actionBar.setHomeAction(new IntentAction(this, createIntent(this), R.drawable.ic_title_home_demo));
-        actionBar.setTitle("Home");
-
-        final Action shareAction = new IntentAction(this, createShareIntent(), R.drawable.ic_title_share_default);
-        actionBar.addAction(shareAction);
-        final Action otherAction = new IntentAction(this, new Intent(this, OtherActivity.class), R.drawable.ic_title_export_default);
-        actionBar.addAction(otherAction);
-
-        Button startProgress = (Button) findViewById(R.id.start_progress);
-        startProgress.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                actionBar.setProgressBarVisibility(View.VISIBLE);
-            }
-        });
         
-        Button stopProgress = (Button) findViewById(R.id.stop_progress);
-        stopProgress.setOnClickListener(new OnClickListener() {
+        setTitle("Login");
+                
+        userManager = UserManager.getInstance();
+        userManager.setContext(getApplicationContext());
+        container = (LinearLayout) findViewById(R.id.container);
+        
+        SharedPreferences settings = getPreferences(MODE_PRIVATE);
+        String network = settings.getString(NETWORK, "");
+        String accessToken = System.getProperty("oauth.accessToken", ""); 
+        String accessTokenSecret = System.getProperty("oauth.accessTokenSecret", "");
+		
+		if(network != "" && accessToken != "" && accessTokenSecret != "") {
+			
+			UserManager.getInstance().autoLogin();
+			
+			// TODO check if login was successful!!!
+			
+			/*
+	         * Redirect to SearchActivity
+	         */
+	        startActivity(new Intent(HomeActivity.this, SearchActivity.class));
+		}        
+		else {			
+        	setLoginView();
+        }
+    }
+	
+	public boolean isOnline() {
+		 ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		 return cm.getActiveNetworkInfo().isConnected();
+	}
+	
+	private void setLoginView() {
+		LayoutInflater inflater = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);	
+		
+		Button btn = (Button) inflater.inflate(R.layout.login, null);
+	    container.addView(btn);        
+        
+        Log.d(TAG, "home");
+    	    	        
+    	Button btnLogin = (Button) findViewById(R.id.btn_login);
+        btnLogin.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                actionBar.setProgressBarVisibility(View.GONE);
-            }
-        });
+            	
+            	if(!isOnline()) {
+            		Toast.makeText(getApplicationContext(), "No internet connection available!", Toast.LENGTH_LONG).show();
+            	}
+            	else {               		
+            		NetworkConfigParser parser = new NetworkConfigParser();
+            		final List<NetworkConfig> networkConfigs = parser.parse(HomeActivity.this.getResources().getXml(R.xml.network_config));
 
-        Button removeActions = (Button) findViewById(R.id.remove_actions);
-        removeActions.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                actionBar.removeAllActions();
+            		CharSequence[] networks = new CharSequence[networkConfigs.size()];
+            		
+            		for (int j = 0; j < networks.length; j++) {
+            			networks[j] = networkConfigs.get(j).getName();
+            		}            		
+            		final CharSequence[] items = networks;
+            		
+            		AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+            		builder.setTitle("Select a network");
+            		builder.setItems(items, new DialogInterface.OnClickListener() {
+            		    public void onClick(DialogInterface dialog, int itemIndex) {
+            		    	
+            		        UserManager.getInstance().setNetworkConfig(networkConfigs, items[itemIndex].toString());
+            		        
+            		        /*
+            		         * Start login procedure after network selection
+            		         */
+            		        String authUrl = null;
+            				try {
+            					authUrl = UserManager.getInstance().getAuthenticationURL();
+            				} catch (TwitterException e) {
+            					// TODO Auto-generated catch block
+            					e.printStackTrace();
+            				}
+            				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl));
+            				intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            				startActivity(intent);
+            		    }
+            		});
+            		
+            		AlertDialog alert = builder.create();
+            		alert.show();         		
+            	}
             }
-        });
-
-        Button addAction = (Button) findViewById(R.id.add_action);
-        addAction.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                actionBar.addAction(new Action() {
-                    @Override
-                    public void performAction(View view) {
-                        Toast.makeText(HomeActivity.this, "Added action.", Toast.LENGTH_SHORT).show();
-                    }
-                    @Override
-                    public int getDrawable() {
-                        return R.drawable.ic_title_share_default;
-                    }
-                });
-            }
-        });
-
-        Button removeAction = (Button) findViewById(R.id.remove_action);
-        removeAction.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                int actionCount = actionBar.getActionCount();
-                actionBar.removeActionAt(actionCount - 1);
-                Toast.makeText(HomeActivity.this, "Removed action." , Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        Button removeShareAction = (Button) findViewById(R.id.remove_share_action);
-        removeShareAction.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                actionBar.removeAction(shareAction);
-            }
-        });
+        });		
+	}
+	
+	/*
+	 * Finish login procedure after callback from browser
+	 * (non-Javadoc)
+	 * @see android.app.Activity#onNewIntent(android.content.Intent)
+	 */
+	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		Log.d(TAG, "onNewIntent()");	
+		
+		Uri uri = intent.getData();
+		if(uri != null) {
+			try {
+				UserManager.getInstance().finalizeOAuthentication(uri);
+				
+				SharedPreferences settings = getPreferences(0);
+			    SharedPreferences.Editor editor = settings.edit();
+			    editor.putString(NETWORK, UserManager.getInstance().getCurrentNetwork());
+			    editor.commit();
+			    
+			    System.setProperty("oauth.accessToken", UserManager.getInstance().getOAuthToken()); 
+		        System.setProperty("oauth.accessTokenSecret", UserManager.getInstance().getOAuthTokenSecret());
+				
+		        /*
+		         * Redirect to SearchActivity
+		         */
+		        startActivity(new Intent(HomeActivity.this, SearchActivity.class));
+		        
+			} catch (TwitterException e) {
+				Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+			}
+		}
+	}
+	
+	
+	
+	private void displayTimeline() { 
+		
+		//setContentView(R.layout.home_tweets);
+		
+		//container.removeViewAt(1);
+		LayoutInflater inflater = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);	
+		
+		LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.home_tweets, null);
+		container.addView(ll);
+		ListView lv = (ListView) inflater.inflate(R.layout.tweet_list, null);
+		container.addView(lv);
+		
+		/*
+		try {
+			UserManager.getInstance().getTwitter().updateStatus("hey it works!");
+			Toast.makeText(this, "message sent", Toast.LENGTH_LONG).show();
+		} catch (TwitterException e1) {
+			Toast.makeText(this, "error sending message :(", Toast.LENGTH_LONG).show();
+			e1.printStackTrace();
+		}*/
+		
+        List<Status> userTimeline = null;
+		try {
+			
+			userTimeline = UserManager.getInstance().getTwitter().getHomeTimeline();
+		} catch (TwitterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        List<String> msgs = new ArrayList<String>();
+        
+        // \\d	A digit: [0-9]
+        // \\w	A word character: [a-zA-Z_0-9]
+        // \\s	A whitespace character: [ \t\n\x0B\f\r]
+        
+        // +	One or more.
+        // \\.+	Anything
+        // *	Zero or more.
+        
+        String regexLG = "LG\\s+\\w+\\.\\w+\\?date=\\d{2}\\.\\d{2}\\.\\d{4}&duration=\\d{4}\\s+#\\w+";
+        
+        Filter lg_Filter = new Filter("LG",
+        		regexLG);
+        
+        FilterManager fm = new FilterManager();
+        fm.addFilter(lg_Filter);
+        fm.setFilter(lg_Filter);
+        
+        // SR proofread.Blog http://www.ikangai.com #blog 
+        //String regexSR = "SR\\s+\\w+\\.\\w+\\?date=\\d{2}\\.\\d{2}\\.\\d{4}&duration=\\d{4}\\s+#\\w+";
+        
+        String regex2 = "#.{1,}";
+        
+        /*for (Status status : userTimeline) {
+        	if(fm.match(status.getText())) {
+        		msgs.add("PATTERN MATCH " + status.getText());
+        	}			
+        	msgs.add(status.getText());
+		}*/
+        
+        ListView tweetsListView = (ListView) findViewById(R.id.tweet_list); 
+        
+        TimelineAdapter adapter = new TimelineAdapter(this, R.layout.list_item, (ArrayList<Status>) userTimeline);
+        
+        tweetsListView.setAdapter(adapter);
+        
+        //TweetsListView tweetsListView = new TweetsListView(this, (ArrayList<Status>) userTimeline);
+        //tweetsListView.notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
+	}
+	
+	
+    
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy()");
+        super.onDestroy();
     }
+       
+    @Override
+	protected void onPause() {
+    	Log.d(TAG, "onPause()");
+		super.onPause();
+	}
 
-    public static Intent createIntent(Context context) {
-        Intent i = new Intent(context, HomeActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        return i;
-    }
+	@Override
+	protected void onRestart() {
+		Log.d(TAG, "onRestart()");
+		super.onRestart();
+	}
 
-    private Intent createShareIntent() {
-        final Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_TEXT, "Shared from the ActionBar widget.");
-        return Intent.createChooser(intent, "Share");
+	@Override
+	protected void onResume() {
+		Log.d(TAG, "onResume()");
+		super.onResume();
+	}
+
+	@Override
+	protected void onStart() {
+		Log.d(TAG, "onStart()");
+		super.onStart();
+	}
+	
+	private class TimelineAdapter extends ArrayAdapter<Status> {
+
+        private ArrayList<Status> timeline;
+
+        public TimelineAdapter(Context context, int textViewResourceId, ArrayList<Status> timeline) {
+                super(context, textViewResourceId, timeline);
+                this.timeline = timeline;
+        }
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+                View view = convertView;
+                if (view == null) {
+                    LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    view = vi.inflate(R.layout.list_item, null);
+                }
+                Status status = timeline.get(position);
+                if (status != null) {
+                	
+                	ImageView imageView = (ImageView) findViewById(R.id.img_tweet);
+                	if (imageView != null) {
+                		
+                		URL imageUrl = status.getUser().getProfileImageURL();
+                		
+                		try{ 
+                            HttpURLConnection conn =  (HttpURLConnection)imageUrl.openConnection(); 
+                            conn.setDoInput(true); 
+                            conn.connect(); 
+                            int length = conn.getContentLength(); 
+                            int[] bitmapData =new int[length]; 
+                            byte[] bitmapData2 =new byte[length]; 
+                            InputStream is = conn.getInputStream(); 
+                            Bitmap bmp = BitmapFactory.decodeStream(is); 
+                            imageView.setImageBitmap(bmp); 
+                            } catch (IOException e) 
+                            { 
+                                    //e.printStackTrace(); 
+                            }
+                	}
+                	TextView senderView = (TextView) findViewById(R.id.sender_tweet);
+                	if(senderView != null) {
+                		senderView.setText(status.getUser().getScreenName() + " at "
+                				+ status.getCreatedAt().toLocaleString());
+                	}
+                	TextView msgView = (TextView) findViewById(R.id.msg_tweet);
+                	if(msgView != null) {
+                		msgView.setText(status.getText());
+                	}
+                }             
+                return view;
+        }
     }
 }
