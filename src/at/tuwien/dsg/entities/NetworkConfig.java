@@ -10,6 +10,7 @@ public class NetworkConfig {
 	private String requestTokenURL;
 	private String restBaseURL;
 	private String searchBaseURL;
+	private String authenticationURL;
 	
 	public NetworkConfig copy() {
 		NetworkConfig nc = new NetworkConfig();
@@ -20,6 +21,7 @@ public class NetworkConfig {
 		nc.requestTokenURL = this.requestTokenURL;
 		nc.restBaseURL = this.restBaseURL;
 		nc.searchBaseURL = this.searchBaseURL;
+		nc.authenticationURL = this.authenticationURL;
 		
 		return nc;
 	}
@@ -74,5 +76,13 @@ public class NetworkConfig {
 
 	public String getSearchBaseURL() {
 		return searchBaseURL;
+	}
+
+	public void setAuthenticationURL(String authenticationURL) {
+		this.authenticationURL = authenticationURL;
+	}
+
+	public String getAuthenticationURL() {
+		return authenticationURL;
 	}
 }

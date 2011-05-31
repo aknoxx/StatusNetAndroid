@@ -27,6 +27,8 @@ public class ActionBarActivity extends Activity {
         actionBar.addAction(shareAction);
         final Action searchAction = new IntentAction(this, new Intent(this, SearchActivity.class), R.drawable.ic_title_export_default);
         actionBar.addAction(searchAction);
+        final Action testAction = new IntentAction(this, new Intent(this, TestActivity.class), R.drawable.ic_title_export_default);
+        actionBar.addAction(testAction);
 	}
 	
 	public void setTitle(String title) {

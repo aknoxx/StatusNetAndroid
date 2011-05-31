@@ -125,7 +125,7 @@ public class Tweeter {
 		Uri uri = intent.getData();
 		if(uri != null) {
 			try {
-				UserManager.getInstance().finalizeOAuthentication(uri);
+				ConnectionManager.getInstance().finalizeOAuthentication(uri);
 			} catch (TwitterException e) {
 				Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
 			}

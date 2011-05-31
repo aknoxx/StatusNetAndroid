@@ -9,6 +9,7 @@
     	<RequestTokenURL>http://twitter.com/oauth/request_token</RequestTokenURL>
     	<RestBaseURL>https://api.twitter.com/1/</RestBaseURL>
     	<SearchBaseURL>http://search.twitter.com/</SearchBaseURL>
+    	<AuthenticationURL>http://twitter.com/oauth/authenticate</AuthenticationURL>
     </network>
     
     <network>
@@ -20,6 +21,7 @@
     	<RequestTokenURL>https://identi.ca/api/oauth/request_token</RequestTokenURL>
     	<RestBaseURL>http://identi.ca/api/</RestBaseURL>
     	<SearchBaseURL>http://search.identi.ca</SearchBaseURL>
+    	<AuthenticationURL>https://identi.ca/api/oauth/authenticate</AuthenticationURL>
     </network>
 
     <network>
@@ -31,5 +33,6 @@
     	<RequestTokenURL>http://192.168.0.10/statusnet/index.php/api/oauth/request_token</RequestTokenURL>
     	<RestBaseURL>http://192.168.0.10/statusnet/index.php/api/</RestBaseURL>
     	<SearchBaseURL>http://192.168.0.10/statusnet/index.php/search/</SearchBaseURL>
+    	<AuthenticationURL>http://192.168.0.10/statusnet/index.php/api/oauth/authenticate</AuthenticationURL>
     </network>
 </networks>

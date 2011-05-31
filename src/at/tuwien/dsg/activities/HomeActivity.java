@@ -33,16 +33,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 import at.tuwien.dsg.R;
 import at.tuwien.dsg.common.FilterManager;
-import at.tuwien.dsg.common.UserManager;
+import at.tuwien.dsg.common.ConnectionManager;
 import at.tuwien.dsg.entities.Filter;
 import at.tuwien.dsg.entities.NetworkConfig;
 import at.tuwien.dsg.util.NetworkConfigParser;
 
 public class HomeActivity extends ActionBarActivity {
 	
-	private static UserManager userManager;
+	private static ConnectionManager userManager;
 	private static final String TAG = "HOME";
 	
+	private static final String MY_PREFS = "myPrefs";
 	private static final String NETWORK = "network";
 	private static final String OAUTH_TOKEN = "oAuthToken";
 	private static final String OAUTH_TOKEN_SECRET = "oAuthTokenSecret";
@@ -62,25 +63,28 @@ public class HomeActivity extends ActionBarActivity {
         
         setTitle("Login");
                 
-        userManager = UserManager.getInstance();
+        userManager = ConnectionManager.getInstance();
         userManager.setContext(getApplicationContext());
         container = (LinearLayout) findViewById(R.id.container);
         
-        SharedPreferences settings = getPreferences(MODE_PRIVATE);
+        SharedPreferences settings = getSharedPreferences(MY_PREFS, MODE_PRIVATE);
         String network = settings.getString(NETWORK, "");
-        String accessToken = System.getProperty("oauth.accessToken", ""); 
-        String accessTokenSecret = System.getProperty("oauth.accessTokenSecret", "");
+        String accessToken = settings.getString(OAUTH_TOKEN, "");
+        String accessTokenSecret = settings.getString(OAUTH_TOKEN_SECRET, "");
+        //String accessToken = System.getProperty("twitter4j.oauth.accessToken", ""); 
+        //String accessTokenSecret = System.getProperty("twitter4j.oauth.accessTokenSecret", "");
 		
 		if(network != "" && accessToken != "" && accessTokenSecret != "") {
 			
-			UserManager.getInstance().autoLogin();
+			ConnectionManager.getInstance().autoLogin();
 			
 			// TODO check if login was successful!!!
 			
 			/*
 	         * Redirect to SearchActivity
 	         */
-	        startActivity(new Intent(HomeActivity.this, SearchActivity.class));
+	        //startActivity(new Intent(HomeActivity.this, SearchActivity.class));
+			startActivity(new Intent(HomeActivity.this, TestActivity.class));
 		}        
 		else {			
         	setLoginView();
@@ -100,8 +104,8 @@ public class HomeActivity extends ActionBarActivity {
         
         Log.d(TAG, "home");
     	    	        
-    	Button btnLogin = (Button) findViewById(R.id.btn_login);
-        btnLogin.setOnClickListener(new OnClickListener() {
+    	//Button btnLogin = (Button) findViewById(R.id.btn_login);
+        btn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
             	
@@ -124,14 +128,14 @@ public class HomeActivity extends ActionBarActivity {
             		builder.setItems(items, new DialogInterface.OnClickListener() {
             		    public void onClick(DialogInterface dialog, int itemIndex) {
             		    	
-            		        UserManager.getInstance().setNetworkConfig(networkConfigs, items[itemIndex].toString());
+            		        ConnectionManager.getInstance().setNetworkConfig(networkConfigs, items[itemIndex].toString());
             		        
             		        /*
             		         * Start login procedure after network selection
             		         */
             		        String authUrl = null;
             				try {
-            					authUrl = UserManager.getInstance().getAuthenticationURL();
+            					authUrl = ConnectionManager.getInstance().getAuthenticationURL();
             				} catch (TwitterException e) {
             					// TODO Auto-generated catch block
             					e.printStackTrace();
@@ -162,20 +166,23 @@ public class HomeActivity extends ActionBarActivity {
 		Uri uri = intent.getData();
 		if(uri != null) {
 			try {
-				UserManager.getInstance().finalizeOAuthentication(uri);
+				ConnectionManager.getInstance().finalizeOAuthentication(uri);
 				
-				SharedPreferences settings = getPreferences(0);
+				SharedPreferences settings = getSharedPreferences(MY_PREFS, MODE_PRIVATE);
 			    SharedPreferences.Editor editor = settings.edit();
-			    editor.putString(NETWORK, UserManager.getInstance().getCurrentNetwork());
+			    editor.putString(NETWORK, ConnectionManager.getInstance().getCurrentNetwork());
+			    editor.putString(OAUTH_TOKEN, ConnectionManager.getInstance().getOAuthToken());
+			    editor.putString(OAUTH_TOKEN_SECRET, ConnectionManager.getInstance().getOAuthTokenSecret());
 			    editor.commit();
 			    
-			    System.setProperty("oauth.accessToken", UserManager.getInstance().getOAuthToken()); 
-		        System.setProperty("oauth.accessTokenSecret", UserManager.getInstance().getOAuthTokenSecret());
+			    //System.setProperty("oauth.accessToken", ConnectionManager.getInstance().getOAuthToken()); 
+		        //System.setProperty("oauth.accessTokenSecret", ConnectionManager.getInstance().getOAuthTokenSecret());
 				
 		        /*
 		         * Redirect to SearchActivity
 		         */
-		        startActivity(new Intent(HomeActivity.this, SearchActivity.class));
+		        //startActivity(new Intent(HomeActivity.this, SearchActivity.class));
+			    startActivity(new Intent(HomeActivity.this, TestActivity.class));
 		        
 			} catch (TwitterException e) {
 				Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
@@ -199,7 +206,7 @@ public class HomeActivity extends ActionBarActivity {
 		
 		/*
 		try {
-			UserManager.getInstance().getTwitter().updateStatus("hey it works!");
+			ConnectionManager.getInstance().getTwitter().updateStatus("hey it works!");
 			Toast.makeText(this, "message sent", Toast.LENGTH_LONG).show();
 		} catch (TwitterException e1) {
 			Toast.makeText(this, "error sending message :(", Toast.LENGTH_LONG).show();
@@ -209,7 +216,7 @@ public class HomeActivity extends ActionBarActivity {
         List<Status> userTimeline = null;
 		try {
 			
-			userTimeline = UserManager.getInstance().getTwitter().getHomeTimeline();
+			userTimeline = ConnectionManager.getInstance().getTwitter().getHomeTimeline();
 		} catch (TwitterException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -306,7 +313,7 @@ public class HomeActivity extends ActionBarActivity {
                 }
                 Status status = timeline.get(position);
                 if (status != null) {
-                	
+                	/*
                 	ImageView imageView = (ImageView) findViewById(R.id.img_tweet);
                 	if (imageView != null) {
                 		
@@ -327,12 +334,14 @@ public class HomeActivity extends ActionBarActivity {
                                     //e.printStackTrace(); 
                             }
                 	}
-                	TextView senderView = (TextView) findViewById(R.id.sender_tweet);
+                	*/
+                	
+                	TextView senderView = (TextView) findViewById(R.id.request_info);
                 	if(senderView != null) {
                 		senderView.setText(status.getUser().getScreenName() + " at "
                 				+ status.getCreatedAt().toLocaleString());
                 	}
-                	TextView msgView = (TextView) findViewById(R.id.msg_tweet);
+                	TextView msgView = (TextView) findViewById(R.id.request_content);
                 	if(msgView != null) {
                 		msgView.setText(status.getText());
                 	}

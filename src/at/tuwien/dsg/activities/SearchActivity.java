@@ -33,7 +33,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import at.tuwien.dsg.R;
-import at.tuwien.dsg.common.UserManager;
+import at.tuwien.dsg.common.ConnectionManager;
 
 public class SearchActivity extends ActionBarActivity {
 
@@ -84,7 +84,7 @@ public class SearchActivity extends ActionBarActivity {
 		QueryResult queryResult = null;
 		Query q = new Query(query);
 		try {
-			queryResult = UserManager.getInstance().getTwitter().search(q);			
+			queryResult = ConnectionManager.getInstance().getTwitter().search(q);			
 			resultTweets.clear();
 			resultTweets.addAll((ArrayList<Tweet>) queryResult.getTweets());
 			adapter.notifyDataSetChanged();
@@ -114,7 +114,7 @@ public class SearchActivity extends ActionBarActivity {
                 }
                 Tweet tweet = searchResults.get(position);
                 if (tweet != null) {
-                	
+                	/*
                 	ImageView imageView = (ImageView) findViewById(R.id.img_tweet);
                 	if (imageView != null) {
                 		
@@ -137,12 +137,14 @@ public class SearchActivity extends ActionBarActivity {
                                     //e.printStackTrace(); 
                             }
                 	}
-                	TextView senderView = (TextView) findViewById(R.id.sender_tweet);
+                	*/
+                	
+                	TextView senderView = (TextView) findViewById(R.id.request_info);
                 	if(senderView != null) {
                 		senderView.setText(tweet.getSource() + " at "
                 				+ tweet.getCreatedAt().toLocaleString());
                 	}
-                	TextView msgView = (TextView) findViewById(R.id.msg_tweet);
+                	TextView msgView = (TextView) findViewById(R.id.request_content);
                 	if(msgView != null) {
                 		msgView.setText(tweet.getText());
                 	}
@@ -170,7 +172,7 @@ public class SearchActivity extends ActionBarActivity {
     }
 	
     private void logout() {
-    	UserManager.getInstance().logout();
+    	ConnectionManager.getInstance().logout();
     	
     	SharedPreferences settings = getPreferences(0);
 	    SharedPreferences.Editor editor = settings.edit();
@@ -180,7 +182,7 @@ public class SearchActivity extends ActionBarActivity {
 	    System.setProperty("oauth.accessToken", ""); 
         System.setProperty("oauth.accessTokenSecret", "");
         
-        UserManager.destroyInstance();
+        ConnectionManager.destroyInstance();
 	    
         startActivity(new Intent(SearchActivity.this, HomeActivity.class));
     }

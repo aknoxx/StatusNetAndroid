@@ -2,27 +2,37 @@ package at.tuwien.dsg.common;
 
 import java.util.List;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Log;
+import at.tuwien.dsg.R;
+import at.tuwien.dsg.activities.HomeActivity;
 import at.tuwien.dsg.entities.NetworkConfig;
+import at.tuwien.dsg.util.NetworkConfigParser;
+import twitter4j.PagableResponseList;
+import twitter4j.Paging;
 import twitter4j.Query;
 import twitter4j.QueryResult;
+import twitter4j.ResponseList;
+import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.UserList;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
-public class UserManager {
+public class ConnectionManager {
 	
 	private static Context ctx;
 	
-	private static UserManager instance;
+	private static ConnectionManager instance;
 	private static String consumerKey; 		
 	private static String consumerSecret; 
 
-	private static final String TAG = "UserManager";
+	private static final String TAG = "ConnectionManager";
 		
 	private final String CALLBACKURL = "T4JOAuth://main";
 	private Twitter twitter;
@@ -34,14 +44,19 @@ public class UserManager {
 	private String oAuthAccessToken;
 	private String oAuthAccessTokenSecret;
 	
+	private static final String MY_PREFS = "myPrefs";
+	private static final String NETWORK = "network";
+	private static final String OAUTH_TOKEN = "oAuthToken";
+	private static final String OAUTH_TOKEN_SECRET = "oAuthTokenSecret";
+	
 	private String currentNetwork;
 	
-	private UserManager() {};
+	private ConnectionManager() {};
 
-	public static UserManager getInstance() {
+	public static ConnectionManager getInstance() {
 		System.out.println("Test");
 		if (instance == null) {
-			instance = new UserManager();
+			instance = new ConnectionManager();
 		}
 		return instance;
 	}
@@ -69,6 +84,7 @@ public class UserManager {
         System.setProperty("twitter4j.oauth.requestTokenURL", config.getRequestTokenURL()); 
         System.setProperty("twitter4j.restBaseURL", config.getRestBaseURL()); 
         System.setProperty("twitter4j.searchBaseURL", config.getSearchBaseURL()); 
+        System.setProperty("twitter4j.oauth.authenticationURL", config.getAuthenticationURL()); 
 		
 	}
 	
@@ -83,7 +99,14 @@ public class UserManager {
 		twitter = new TwitterFactory().getInstance();		
 		
 		requestToken = twitter.getOAuthRequestToken(CALLBACKURL);
+		
+		
 		String authorizationUrl = requestToken.getAuthorizationURL();
+		
+		/*
+		 * ONLY working with twitter.com...:
+		 */
+		//String authorizationUrl = requestToken.getAuthenticationURL();
 		return authorizationUrl;
 		
 		/*		
@@ -109,10 +132,25 @@ public class UserManager {
 		oAuthAccessTokenSecret = accessToken.getTokenSecret();		
 		twitter.setOAuthAccessToken(accessToken);
 
-		System.setProperty("oauth.accessToken", oAuthAccessToken); 
-        System.setProperty("oauth.accessTokenSecret", oAuthAccessTokenSecret);
+		//System.setProperty("twitter4j.oauth.accessToken", oAuthAccessToken); 
+        //System.setProperty("twitter4j.oauth.accessTokenSecret", oAuthAccessTokenSecret);
 		
 		loggedIn = true;
+	}
+	
+	public PagableResponseList<UserList> getUserLists(String listOwnerScreenName) 
+			throws TwitterException {		
+		// Provide a value of -1 to begin paging
+		return twitter.getUserLists(listOwnerScreenName, new Long(-1));
+	}
+	
+	public ResponseList<Status> getUserListStatuses(String listOwnerScreenName, int id, Paging paging) 
+			throws TwitterException {
+		return twitter.getUserListStatuses(listOwnerScreenName, id, paging);
+	}
+	
+	public ResponseList<Status> getHomeTimeline(Paging paging) throws TwitterException {
+		return twitter.getHomeTimeline(paging);
 	}
 	
 	public void setContext(Context context) {
@@ -120,8 +158,29 @@ public class UserManager {
 	}
 	
 	public void autoLogin() {   
+		
+		NetworkConfigParser parser = new NetworkConfigParser();
+		final List<NetworkConfig> networkConfigs = parser.parse(ctx.getResources().getXml(R.xml.network_config));
+		
+		SharedPreferences settings = ctx.getSharedPreferences(MY_PREFS, 0);
+		String network = settings.getString(NETWORK, "");
+		
+		setNetworkConfig(networkConfigs, network);
+		String accessToken = settings.getString(OAUTH_TOKEN, "");
+        String accessTokenSecret = settings.getString(OAUTH_TOKEN_SECRET, "");
         
-        twitter = new TwitterFactory().getInstance();
+        AccessToken at = new AccessToken(accessToken, accessTokenSecret);
+        
+        // potentionally returns a cached instance
+        twitter = new TwitterFactory().getInstance(at);
+        // this would create a new instance: twitter.setOAuthAccessToken(at);
+        try {
+			twitter.verifyCredentials();
+		} catch (TwitterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
         loggedIn = true;
 	}
 

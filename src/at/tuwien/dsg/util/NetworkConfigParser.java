@@ -44,7 +44,9 @@ public class NetworkConfigParser {
 			                    currentConfig.setRestBaseURL(xmlResourceParser.nextText());
 			                } else if (name.equalsIgnoreCase("SearchBaseURL")){
 			                    currentConfig.setSearchBaseURL(xmlResourceParser.nextText());
-			                }					                
+			                } else if (name.equalsIgnoreCase("AuthenticationURL")){
+			                    currentConfig.setAuthenticationURL(xmlResourceParser.nextText());
+			                }						                
                         }
                         break;
                     case XmlPullParser.END_TAG:
