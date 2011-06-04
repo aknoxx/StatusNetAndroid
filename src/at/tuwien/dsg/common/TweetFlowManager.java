@@ -4,20 +4,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import twitter4j.Status;
-import twitter4j.User;
+//import twitter4j.Status;
+//import twitter4j.User;
 
+import at.tuwien.dsg.common.User;
+import at.tuwien.dsg.common.Status;
+
+import android.content.Context;
+import at.tuwien.dsg.R;
 import at.tuwien.dsg.entities.Filter;
 import at.tuwien.dsg.entities.Request;
+import at.tuwien.dsg.entities.TweetflowPrimitive;
+import at.tuwien.dsg.util.TweetFilterParser;
 
-public class FilterManager {
+public class TweetFlowManager implements ITweetflowManager {
 
 	private List<Filter> filters;
 	private Pattern pattern;
 	private Filter appliedFilter;
+	private List<TweetflowPrimitive> primitives = null;
 	
-	public FilterManager() {
+	public List<TweetflowPrimitive> getPrimitives() {
+		return primitives;
+	}
+
+	public void setPrimitives(List<TweetflowPrimitive> primitives) {
+		this.primitives = primitives;
+	}
+
+	public TweetFlowManager(Context ctx) {
+		primitives = new ArrayList<TweetflowPrimitive>();
 		filters = new ArrayList<Filter>();
+		TweetFilterParser parser = new TweetFilterParser();
+		//primitives = parser.parse(ctx.getResources()
+		//		.getXml(R.xml.tweetflow_primitives_filters));
 	}
 	
 	public void setFilter(Filter filter) {
@@ -30,11 +50,31 @@ public class FilterManager {
 	}
 	
 	public Request extractRequest(Status status) {
+		/*
+		 * Status s = new Status();
+		User u = s.getUser();
+		String text = s.getText();
+		Date date = s.getCreatedAt();
+		long id = s.getId();
+		 */
+		Request request = null;
+		TweetflowPrimitive currentPrimitive = null;
+		for (TweetflowPrimitive primitive : primitives) {
+			if((request = primitive.extractRequest(status)) != null) {
+				currentPrimitive = primitive;
+				break;
+			}
+		}
+		
+		
+		/*
 		User user = null;
 		String requester = "noName";
 		if((user = status.getUser()) != null) {
 			requester = user.getName();
 		}
+		
+		
 		
 		String text = status.getText().trim();
 		
@@ -61,7 +101,7 @@ public class FilterManager {
 		request.setDuration(duration);
 		
 		request.getHashTags().add(words[2]);
-		
+		*/
 		return request;		
 	}
 	
@@ -76,6 +116,10 @@ public class FilterManager {
 	public List<Filter> getFilters() {
 		return filters;
 	}
-	
-	
+
+	@Override
+	public void loadRequestsFromDb() {
+		// TODO Auto-generated method stub
+		
+	}
 }

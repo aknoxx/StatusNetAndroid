@@ -32,7 +32,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import at.tuwien.dsg.R;
-import at.tuwien.dsg.common.FilterManager;
+import at.tuwien.dsg.common.TweetFlowManager;
 import at.tuwien.dsg.common.ConnectionManager;
 import at.tuwien.dsg.entities.Filter;
 import at.tuwien.dsg.entities.NetworkConfig;
@@ -237,7 +237,7 @@ public class HomeActivity extends ActionBarActivity {
         Filter lg_Filter = new Filter("LG",
         		regexLG);
         
-        FilterManager fm = new FilterManager();
+        TweetFlowManager fm = new TweetFlowManager(this);
         fm.addFilter(lg_Filter);
         fm.setFilter(lg_Filter);
         

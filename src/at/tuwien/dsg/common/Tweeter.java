@@ -106,7 +106,8 @@ public class Tweeter {
 			String tweet = "#OAuth working! " + d.toLocaleString();
 			
 			//send the tweet
-			Status status = twitter.updateStatus(tweet);
+			// TODO
+			Status status = null;// twitter.updateStatus(tweet);
 			
 			// feedback for the user...
 			//Toast.makeText(this, tweet, Toast.LENGTH_LONG).show();

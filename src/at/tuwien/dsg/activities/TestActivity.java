@@ -30,7 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import at.tuwien.dsg.R;
-import at.tuwien.dsg.common.FilterManager;
+import at.tuwien.dsg.common.TweetFlowManager;
 import at.tuwien.dsg.common.ConnectionManager;
 import at.tuwien.dsg.entities.Filter;
 import at.tuwien.dsg.entities.Request;
@@ -63,7 +63,7 @@ public class TestActivity extends ActionBarActivity {
         Filter lg_Filter = new Filter("LG",
         		regexLG);
         
-        FilterManager fm = new FilterManager();
+        TweetFlowManager fm = new TweetFlowManager(this);
         fm.addFilter(lg_Filter);
         fm.setFilter(lg_Filter);
         
@@ -102,10 +102,10 @@ public class TestActivity extends ActionBarActivity {
 					userTimeline.add(status);
 					requestsFound++;
 					
-					Request req = fm.extractRequest(status);
+					Request req = null; //fm.extractRequest(status);
 					tv = new TextView(this);
-				    tv.setText(req.getType() + " " + req.getDate() + " " + req.getDuration() +
-				    		" " + req.getVerb() + req.getObject() + req.getRequester() + " " + 
+				    tv.setText(req.getQualifier() + " " + req.getCreatedAt() + " " + //req.getDuration() +
+				    		" " + req.getOperation() + req.getService() + req.getRequester() + " " + 
 				    		req.getHashTags().get(0));
 					container.addView(tv);
 				}

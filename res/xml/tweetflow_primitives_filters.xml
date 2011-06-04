@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<primitives>
+
+	<primitive>  <!-- problem with & in string -->
+		<qualifier>LG</qualifier>
+		<name>Log</name>
+		<description>SR @user operation.Service inputdata [conditional expression] #hashtags</description>
+    	<pattern>LG\\s+\\w+\\.\\w+\\?date=\\d{2}\\.\\d{2}\\.\\d{4}\\.duration=\\d{4}\\s+#\\w+</pattern>
+    </primitive>
+    
+    <primitive>
+		<qualifier>SR</qualifier>
+		<name>Service Request</name>
+		<description>SR @user operation.Service inputdata [conditional expression] #hashtags</description>
+    	<pattern>SR</pattern>
+    </primitive>
+
+</primitives>
