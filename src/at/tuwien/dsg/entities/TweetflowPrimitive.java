@@ -4,15 +4,28 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import at.tuwien.dsg.common.Status;
-import at.tuwien.dsg.common.User;
 
 public class TweetflowPrimitive {
 
-	private String qualifier;
+	/*private String qualifier;
 	private String name;
 	private String description;
 	private String pattern;
 	private String url;
+	*/
+	
+	private final String requestPatternString = "[A-Z]{2}" +
+					"( @\\w+)? " +
+					"\\w+\\.\\w+" +
+					"( http://[\\S\\./]+)?" +
+					"( \\w+=\\S+(&\\w+=\\S+)+)?" +
+					"( \\[@\\w+\\.\\w+\\?=\\w+\\])?" +
+					"( #\\w+)*";
+	
+	private final String variableAssignmentString = 
+					"VA " +
+					"\\S+ " +	// varname
+					"\\S+";		// value
 	
 	private static Pattern requestPattern;
 	private static Pattern hashTagPattern;
@@ -22,7 +35,12 @@ public class TweetflowPrimitive {
 	private static Pattern operationServicePattern;
 	private static Pattern conditionPattern;
 	
+	private static Pattern variableAssignmentPattern;
+	private static Pattern variableAccessPattern;
+	private static Pattern serviceResultAccessPattern;
+	
 	public TweetflowPrimitive() {
+		requestPattern = Pattern.compile(requestPatternString);
 		hashTagPattern = Pattern.compile("#\\w+");
 		// \S A non-whitespace character: [^\s]
 		// http://[\\S\\./]+
@@ -33,8 +51,13 @@ public class TweetflowPrimitive {
 		queryStringPattern = Pattern.compile("\\w+=\\S+(&\\w+=\\S+)+");
 		operationServicePattern = Pattern.compile(" \\S+\\.\\S+ ");
 		conditionPattern = Pattern.compile("\\[@\\w+\\.\\w+\\?=\\w+\\]");
+		
+		variableAssignmentPattern = Pattern.compile(variableAssignmentString);
+		variableAccessPattern = Pattern.compile("@\\w+\\.\\w+\\?");
+		serviceResultAccessPattern = Pattern.compile("@\\w+\\.\\w+\\.\\w+\\?");
 	}
 	
+	/*
 	public TweetflowPrimitive(String qualifier, String name,
 			String description, String pattern) {
 		this();
@@ -43,25 +66,27 @@ public class TweetflowPrimitive {
 		this.name = name;
 		this.description = description;
 		this.pattern = pattern;
-	}
+	}*/
 
 	public Request extractRequest(Status status) {
-		final String text = status.getText();
+		final String statusText = status.getText();
 		Request request = new Request();
-		request.setQualifier(qualifier);
 		
-		if(qualifier.equals("SR") || qualifier.equals("SF")) {
-			Matcher requestMatcher = requestPattern.matcher(text);
-			if(!requestMatcher.matches()) {
-				return null;
-			}
+		// SR, SF, TF, LG
+		Matcher matcher = requestPattern.matcher(statusText);		
+		if(matcher.find()) {
+		
+			final String requestText = matcher.group();
 			
-			Matcher matcher = userPattern.matcher(text);
+			request.setQualifier(requestText.substring(0, 2));
+			request.setCompleteRequestText(requestText);
+		
+			matcher = userPattern.matcher(requestText);
 			if(matcher.find()) {	// optional
-				request.setAddressedUser(new User(matcher.group().substring(1)));
+				request.setAddressedUser(new String(matcher.group().substring(1)));
 			}		
 			
-			matcher = operationServicePattern.matcher(status.getText());
+			matcher = operationServicePattern.matcher(requestText);
 			if(matcher.find()) {
 				String[] operationService = matcher.group().trim().split("\\.");
 				request.setOperation(operationService[0]);
@@ -71,12 +96,12 @@ public class TweetflowPrimitive {
 				return null;
 			}
 			
-			matcher = urlPattern.matcher(text);
+			matcher = urlPattern.matcher(requestText);
 			if(matcher.find()) {
 				request.setUrl(matcher.group());
 			}
 			
-			matcher = queryStringPattern.matcher(text);
+			matcher = queryStringPattern.matcher(requestText);
 			if(matcher.find()) {
 				String[] queryArguments = matcher.group().split("&");
 				
@@ -86,14 +111,17 @@ public class TweetflowPrimitive {
 				}
 			}
 			
-			// only url or querystring allowed
-			if(request.getUrl()==null && request.getVariables().size()==0
-					|| request.getUrl()!=null && request.getVariables().size()>0) {
-				return null;
+			if(request.getQualifier().equals("SR")
+					|| request.getQualifier().equals("SF")) {
+				// only url or querystring allowed
+				if(request.getUrl()==null && request.getVariables().size()==0
+						|| request.getUrl()!=null && request.getVariables().size()>0) {
+					return null;
+				}
 			}
 			
 			// e.g. [@ikangai.availability?=true]
-			matcher = conditionPattern.matcher(text);
+			matcher = conditionPattern.matcher(requestText);
 			if(matcher.find()) {	// optional
 				String[] condition = matcher.group().split("=");			
 				String[] userVariable = condition[0].split("\\.");
@@ -105,7 +133,7 @@ public class TweetflowPrimitive {
 				request.setCondition(con);
 			}
 			
-			matcher = hashTagPattern.matcher(text);
+			matcher = hashTagPattern.matcher(requestText);
 			// Find all matches
 			while (matcher.find()) { 	// optional
 				// Get the matching string
@@ -115,48 +143,71 @@ public class TweetflowPrimitive {
 			
 			request.setTweetId(status.getId());
 			request.setCreatedAt(status.getCreatedAt());
-			request.setRequester(status.getUser().getName());		
+			request.setRequester(status.getSender());		
+
+			return request;
 		}
+		
+		// VA ExplicitVariableAssignment
+		// VA varname value
+		matcher = variableAssignmentPattern.matcher(statusText);	
+		if(matcher.find()) {
+			final String requestText = matcher.group();
+			
+			request.setQualifier(requestText.substring(0, 2));
+			request.setCompleteRequestText(requestText);
+			
+			String[] parts = requestText.split(" ");
+			request.getVariables().put(parts[1], parts[2]);			
 
-		return request;
-	}
-	
-	public String getSymbol() {
-		return qualifier;
-	}
-	public void setQualifier(String symbol) {
-		this.qualifier = symbol;
-	}
-	public String getDescription() {
-		return description;
-	}
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	public String getPattern() {
-		return pattern;
-	}
-	public void setPattern(String pattern) {
-		this.pattern = pattern;
-	}
+			request.setTweetId(status.getId());
+			request.setCreatedAt(status.getCreatedAt());
+			request.setRequester(status.getSender());		
 
-	public void setName(String name) {
-		this.name = name;
-	}
+			return request;
+		}
+		
+		// @user.varname?
+		// Access variable (will be created if not existent)
+		matcher = variableAccessPattern.matcher(statusText);	
+		if(matcher.find()) {
+			final String requestText = matcher.group();
+			
+			request.setQualifier("AccessVariable");
+			request.setCompleteRequestText(requestText);
+			
+			String[] parts = requestText.split("\\.");
+			request.setAddressedUser(new String(parts[0].substring(1)));	// remove @
+			request.getVariables().put(parts[1].substring(0, parts[1].length()-1), null); // remove ?
+			
+			request.setTweetId(status.getId());
+			request.setCreatedAt(status.getCreatedAt());
+			request.setRequester(status.getSender());		
 
-	public String getName() {
-		return name;
-	}
+			return request;
+		}
+		
+		//@user.operation.Service?	
+		//Access service result (Implicit) / ask user to retweet result
+		matcher = serviceResultAccessPattern.matcher(statusText);	
+		if(matcher.find()) {
+			final String requestText = matcher.group();
+			
+			request.setQualifier("AccessServiceResult");
+			request.setCompleteRequestText(requestText);
+			
+			String[] parts = requestText.split("\\.");
+			request.setAddressedUser(new String(parts[0].substring(1)));	// remove @
+			request.setOperation(parts[1]);
+			request.setService(parts[2].substring(0, parts[2].length()-1)); // remove ?			
 
+			request.setTweetId(status.getId());
+			request.setCreatedAt(status.getCreatedAt());
+			request.setRequester(status.getSender());		
 
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-
-
-	public String getUrl() {
-		return url;
+			return request;
+		}
+		
+		return null;
 	}
 }

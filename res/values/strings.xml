@@ -5,4 +5,7 @@
     <string name="some_title">Other</string>
     <string name="login_description">You have to login to your Status.net account:</string>
     <string name="login">Login...</string>
+    <string name="request_progress_title">Loading data</string>
+    <string name="request_progress_text">Retrieving new requests...</string>
+
 </resources>

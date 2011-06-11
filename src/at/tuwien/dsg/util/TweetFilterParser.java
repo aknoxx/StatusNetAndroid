@@ -27,7 +27,7 @@ public class TweetFilterParser {
                         if (name.equalsIgnoreCase("primitive")){
                         	currentPrimitive = new TweetflowPrimitive();
                         } else if (currentPrimitive != null){
-                            if (name.equalsIgnoreCase("qualifier")){
+                            /*if (name.equalsIgnoreCase("qualifier")){
                             	currentPrimitive.setQualifier(xmlResourceParser.nextText());
                             } else if (name.equalsIgnoreCase("name")){
 	                        	currentPrimitive.setName(xmlResourceParser.nextText());
@@ -38,7 +38,7 @@ public class TweetFilterParser {
 			                }
                             else {
                             	
-                            }
+                            }*/
                         }
                         break;
                     case XmlPullParser.END_TAG:

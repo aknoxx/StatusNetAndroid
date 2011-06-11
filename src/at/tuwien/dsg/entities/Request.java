@@ -6,12 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import at.tuwien.dsg.common.User;
-
 public class Request {
 
 	private String qualifier;	
-	private User addressedUser;	// nullable
+	private String addressedUser;
 	private String operation;
 	private String service;
 	private List<String> hashTags;
@@ -19,19 +17,26 @@ public class Request {
 	private Condition condition;
 	private Map<String, String> variables;
 	
+	private String completeRequestText;
+	
 	private long tweetId;
 	private String sender;
 	private Date createdAt;
+	
+	// this field is not saved to Db
+	private boolean saved;
+	private long dbId;
 	
 	public Request() {
 		hashTags = new ArrayList<String>();
 		variables = new HashMap<String, String>();
 	}
 
-	public Request(String qualifier, User addressedUser, String serviceName,
+	public Request(String completeRequestText, String qualifier, String addressedUser, String serviceName,
 			String serviceOperation, List<String> hashTags, String url, long tweetId,
 			String sender, Date createdAt) {
 		super();
+		this.completeRequestText = completeRequestText;
 		this.qualifier = qualifier;
 		this.addressedUser = addressedUser;
 		this.setOperation(serviceName);
@@ -42,6 +47,38 @@ public class Request {
 		this.sender = sender;
 		this.createdAt = createdAt;
 	}
+	
+	public Request(String completeRequestText, String qualifier, String addressedUser, String operation,
+			String service, String url, long tweetId,
+			String sender, Date createdAt) {
+		super();
+		this.completeRequestText = completeRequestText;
+		this.qualifier = qualifier;
+		this.addressedUser = addressedUser;
+		this.setOperation(operation);
+		this.setService(service);
+		this.url = url;
+		this.tweetId = tweetId;
+		this.sender = sender;
+		this.createdAt = createdAt;
+	}
+	
+	/*
+     * Returns a ContentValues instance (a map) for this NoteInfo instance. This is useful for
+     * inserting a NoteInfo into a database.
+     */
+   /* public ContentValues getContentValues() {
+        // Gets a new ContentValues object
+        ContentValues v = new ContentValues();
+
+        // Adds map entries for the user-controlled fields in the map
+        v.put(Request.Requests., title);
+        v.put(NotePad.Notes.COLUMN_NAME_NOTE, note);
+        v.put(NotePad.Notes.COLUMN_NAME_CREATE_DATE, createDate);
+        v.put(NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE, modDate);
+        return v;
+
+    }*/
 
 	public String getQualifier() {
 		return qualifier;
@@ -80,11 +117,11 @@ public class Request {
 		return tweetId;
 	}
 
-	public void setAddressedUser(User addressedUser) {
+	public void setAddressedUser(String addressedUser) {
 		this.addressedUser = addressedUser;
 	}
 
-	public User getAddressedUser() {
+	public String getAddressedUser() {
 		return addressedUser;
 	}
 
@@ -122,5 +159,29 @@ public class Request {
 
 	public Condition getCondition() {
 		return condition;
+	}
+
+	public void setCompleteRequestText(String completeRequestText) {
+		this.completeRequestText = completeRequestText;
+	}
+
+	public String getCompleteRequestText() {
+		return completeRequestText;
+	}
+
+	public void setSaved(boolean saved) {
+		this.saved = saved;
+	}
+
+	public boolean isSaved() {
+		return saved;
+	}
+
+	public void setDbId(long dbId) {
+		this.dbId = dbId;
+	}
+
+	public long getDbId() {
+		return dbId;
 	}
 }

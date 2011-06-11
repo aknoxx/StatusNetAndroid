@@ -4,13 +4,13 @@ import java.util.Date;
 
 public class Status {
 	
-	private User user;
+	private String sender;
 	private String text;
 	private Date date;
 	private long id;
 	
-	public Status(User user, String text, Date date, long id) {
-		this.user = user;
+	public Status(String sender, String text, Date date, long id) {
+		this.sender = sender;
 		this.text = text;
 		this.date = date;
 		this.id = id;
@@ -28,7 +28,7 @@ public class Status {
 		return text;
 	}
 
-	public User getUser() {
-		return user;
+	public String getSender() {
+		return sender;
 	}
 }
