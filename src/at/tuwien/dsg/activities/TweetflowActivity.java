@@ -13,6 +13,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,6 +22,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +33,10 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import at.tuwien.dsg.R;
+import at.tuwien.dsg.common.Request.Conditions;
+import at.tuwien.dsg.common.Request.HashTags;
+import at.tuwien.dsg.common.Request.Requests;
+import at.tuwien.dsg.common.Request.Variables;
 import at.tuwien.dsg.common.TweetFlowManager;
 import at.tuwien.dsg.entities.Request;
 
@@ -56,6 +63,11 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	// Global mutable variables
     private Uri mUri;
     private Cursor mCursor;
+    
+    private ContentProviderClient requestsProvider;
+    private ContentProviderClient hashTagsProvider;
+    private ContentProviderClient conditionsProvider;
+    private ContentProviderClient variablesProvider;
 	
 	private ActionBar actionBar;
 	
@@ -81,6 +93,11 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		tfm = new TweetFlowManager(this);	
 		
 		
+		requestsProvider = getContentResolver().acquireContentProviderClient(Requests.CONTENT_URI);
+		hashTagsProvider = getContentResolver().acquireContentProviderClient(HashTags.CONTENT_URI);
+		conditionsProvider = getContentResolver().acquireContentProviderClient(Conditions.CONTENT_URI);
+		variablesProvider = getContentResolver().acquireContentProviderClient(Variables.CONTENT_URI);
+		
 		/*
          * Using the URI passed in with the triggering Intent, gets the note or notes in
          * the provider.
@@ -91,13 +108,18 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
          * 
          * --> use CursorLoader !!!
          */
-        /*mCursor = managedQuery(
+		/*
+        mCursor = managedQuery(
             mUri,         // The URI that gets multiple notes from the provider.
-            null,   // A projection that returns the note ID and note content for each note.
+            REQUEST_PROJECTION,   // A projection that returns the note ID and note content for each note.
             null,         // No "where" clause selection criteria.
             null,         // No "where" clause selection values.
             null          // Use the default sort order (modification date, descending)
-        );   	*/	
+        );	*/
+
+        
+        // TODO
+        // c.setNotificationUri(getContext().getContentResolver(), uri);
 		
 		//tfm.setTestTFs();
 		
@@ -185,7 +207,10 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 
 	        return true;
         case LOAD_ID:        
-        	new LoadDataTask().execute();        	
+        	//new LoadDataTask().execute();  
+        	
+        	new LoadDataContentProviderTask().execute(requestsProvider,
+        			hashTagsProvider, conditionsProvider, variablesProvider);
 
 	        return true;
     	case CLEAR_ID:
@@ -267,6 +292,35 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		}
 	}
     
+    private class LoadDataContentProviderTask extends AsyncTask<ContentProviderClient, Void, Boolean> {
+   	 
+		ProgressDialog retrieveDialog;
+ 
+		@Override
+		protected void onPreExecute() {
+			retrieveDialog = ProgressDialog.show(TweetflowActivity.this, 
+				getText(R.string.request_progress_title), 
+				getText(R.string.request_progress_text), 
+				true,	// indeterminate duration
+				false); // not cancel-able
+		}
+ 
+		@Override
+		protected Boolean doInBackground(ContentProviderClient... params) {
+			return tfm.loadRequestsFromContentProvider(params[0], params[1], params[2], params[3]);
+			//return tfm.loadFilteredRequests();
+		}
+ 
+		// This is in the UI thread, so we can mess with the UI
+		protected void onPostExecute(Boolean req) {
+			retrieveDialog.dismiss();
+			if(!req) {
+				Toast.makeText(TweetflowActivity.this, "Error loading data!", Toast.LENGTH_SHORT).show();
+			}
+			adapter.notifyDataSetChanged();
+		}
+	}
+    
     
     @Override
     protected void onPrepareDialog(int id, Dialog dialog) {
@@ -340,4 +394,39 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
         intent.putExtra(Intent.EXTRA_TEXT, "Shared from the ActionBar widget.");
         return Intent.createChooser(intent, "Share");
     }
+    
+    final String[] REQUEST_PROJECTION = 
+		new String[] { 
+			Requests._ID,
+			Requests.QUALIFIER,
+			Requests.ADDRESSED_USER_NAME,
+			Requests.OPERATION,
+			Requests.SERVICE,
+			Requests.URL,
+			Requests.COMPLETE_REQUEST_TEXT,
+			Requests.TWEET_ID,
+			Requests.SENDER_NAME,
+			Requests.CREATED_AT
+		};
+	
+	final String[] HASHTAG_PROJECTION = 
+		new String[] { 
+			HashTags.REQUEST_ID,
+			HashTags.NAME
+		};
+	
+	final String[] CONDITION_PROJECTION = 
+		new String[] { 
+			Conditions.REQUEST_ID,
+			Conditions.USER_NAME,
+			Conditions.VARIABLE,
+			Conditions.VALUE
+		};
+	
+	final String[] VARIABLE_PROJECTION = 
+		new String[] { 
+			Variables.REQUEST_ID,
+			Variables.NAME,
+			Variables.VALUE
+		};
 }

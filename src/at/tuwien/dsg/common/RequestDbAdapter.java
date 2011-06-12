@@ -15,7 +15,10 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import at.tuwien.dsg.common.Request.Conditions;
+import at.tuwien.dsg.common.Request.HashTags;
 import at.tuwien.dsg.common.Request.Requests;
+import at.tuwien.dsg.common.Request.Variables;
 import at.tuwien.dsg.entities.Condition;
 
 public class RequestDbAdapter {
@@ -46,26 +49,26 @@ public class RequestDbAdapter {
 	
     private static final String CREATE_TABLE_HASHTAG =
 		"CREATE TABLE IF NOT EXISTS " + HASHTAG_TABLE_NAME + " ("
-        + Requests._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-        + Requests.REQUEST_ID + " LONG,"
-        + Requests.NAME + " TEXT"
+        + HashTags._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+        + HashTags.REQUEST_ID + " LONG,"
+        + HashTags.NAME + " TEXT"
         + ");";
 	
     private static final String CREATE_TABLE_CONDITION =
 		"CREATE TABLE IF NOT EXISTS " + CONDITION_TABLE_NAME + " ("
-        + Requests._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-        + Requests.REQUEST_ID + " LONG,"
-        + Requests.USER_NAME + " TEXT,"
-        + Requests.VARIABLE + " TEXT,"
-        + Requests.VALUE + " TEXT"
+        + Conditions._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+        + Conditions.REQUEST_ID + " LONG,"
+        + Conditions.USER_NAME + " TEXT,"
+        + Conditions.VARIABLE + " TEXT,"
+        + Conditions.VALUE + " TEXT"
         + ");";
 	
     private static final String CREATE_TABLE_VARIABLE =
 		"CREATE TABLE IF NOT EXISTS " + VARIABLE_TABLE_NAME + " ("
-        + Requests._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-        + Requests.REQUEST_ID + " LONG,"
-        + Requests.NAME + " TEXT,"
-        + Requests.VALUE + " TEXT"
+        + Variables._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+        + Variables.REQUEST_ID + " LONG,"
+        + Variables.NAME + " TEXT,"
+        + Variables.VALUE + " TEXT"
         + ");";
 	
 	private static class DatabaseHelper extends SQLiteOpenHelper {
@@ -148,8 +151,8 @@ public class RequestDbAdapter {
          */
         for (String ht : request.getHashTags()) {
         	values.clear();
-			values.put(Requests.REQUEST_ID, requestId);
-			values.put(Requests.NAME, ht);
+			values.put(HashTags.REQUEST_ID, requestId);
+			values.put(HashTags.NAME, ht);
 			if(mDb.insert(HASHTAG_TABLE_NAME, null, values) < 0) {
 				return -1;
 			}
@@ -161,10 +164,10 @@ public class RequestDbAdapter {
         Condition c;
         if((c = request.getCondition()) != null) {        	
         	values.clear();
-        	values.put(Requests.REQUEST_ID, requestId);
-        	values.put(Requests.USER_NAME, c.getUsername());
-        	values.put(Requests.VARIABLE, c.getVariable());
-        	values.put(Requests.VALUE, c.getValue());
+        	values.put(Conditions.REQUEST_ID, requestId);
+        	values.put(Conditions.USER_NAME, c.getUsername());
+        	values.put(Conditions.VARIABLE, c.getVariable());
+        	values.put(Conditions.VALUE, c.getValue());
 			if(mDb.insert(CONDITION_TABLE_NAME, null, values) < 0) {
 				return -1;
 			}
@@ -176,9 +179,9 @@ public class RequestDbAdapter {
         for (Iterator iter = request.getVariables().entrySet().iterator(); iter.hasNext();) {
             Map.Entry entry = (Map.Entry)iter.next();
             values.clear();
-			values.put(Requests.REQUEST_ID, requestId);
-			values.put(Requests.NAME, (String)entry.getKey());
-			values.put(Requests.VALUE, (String)entry.getValue());
+			values.put(Variables.REQUEST_ID, requestId);
+			values.put(Variables.NAME, (String)entry.getKey());
+			values.put(Variables.VALUE, (String)entry.getValue());
 			if(mDb.insert(VARIABLE_TABLE_NAME, null, values) < 0) {
 				return -1;
 			}
@@ -206,23 +209,23 @@ public class RequestDbAdapter {
 		
 		String[] hashtagSelection = 
 			new String[] { 
-				Requests.REQUEST_ID,
-				Requests.NAME
+				HashTags.REQUEST_ID,
+				HashTags.NAME
 			};
 		
 		String[] conditionSelection = 
 			new String[] { 
-				Requests.REQUEST_ID,
-				Requests.USER_NAME,
-				Requests.VARIABLE,
-				Requests.VALUE
+				Conditions.REQUEST_ID,
+				Conditions.USER_NAME,
+				Conditions.VARIABLE,
+				Conditions.VALUE
 			};
 		
 		String[] variableSelection = 
 			new String[] { 
-				Requests.REQUEST_ID,
-				Requests.NAME,
-				Requests.VALUE
+				Variables.REQUEST_ID,
+				Variables.NAME,
+				Variables.VALUE
 			};
 		
 		Cursor rc =  mDb.query(REQUEST_TABLE_NAME, 
@@ -265,7 +268,7 @@ public class RequestDbAdapter {
 						if(htc.getCount() > 0) {
 							htc.moveToFirst();
 							
-							int nameColumn = htc.getColumnIndex(Requests.NAME);
+							int nameColumn = htc.getColumnIndex(HashTags.NAME);
 							
 							List<String> hashTags = new ArrayList<String>();
 							
@@ -283,9 +286,9 @@ public class RequestDbAdapter {
 						if(cc.getCount() > 0) {
 							cc.moveToFirst();
 							
-							int usernameColumn = cc.getColumnIndex(Requests.USER_NAME);
-							int variableColumn = cc.getColumnIndex(Requests.VARIABLE);
-							int valueColumn = cc.getColumnIndex(Requests.VALUE);
+							int usernameColumn = cc.getColumnIndex(Conditions.USER_NAME);
+							int variableColumn = cc.getColumnIndex(Conditions.VARIABLE);
+							int valueColumn = cc.getColumnIndex(Conditions.VALUE);
 		
 							r.setCondition(new Condition(
 									cc.getString(usernameColumn), 
@@ -302,8 +305,8 @@ public class RequestDbAdapter {
 						if(vc.getCount() > 0) {
 							vc.moveToFirst();
 							
-							int nameColumn = vc.getColumnIndex(Requests.NAME);
-							int valueColumn = vc.getColumnIndex(Requests.VALUE);
+							int nameColumn = vc.getColumnIndex(Variables.NAME);
+							int valueColumn = vc.getColumnIndex(Variables.VALUE);
 							
 							for(int j=0; j<vc.getCount(); j++) {
 								r.getVariables().put(vc.getString(nameColumn), 
@@ -323,11 +326,11 @@ public class RequestDbAdapter {
 	
 	public boolean deleteRequest(long requestId) {
 		mDb.delete(HASHTAG_TABLE_NAME, 
-    			Requests.REQUEST_ID + "=" + requestId, null);
+    			HashTags.REQUEST_ID + "=" + requestId, null);
 		mDb.delete(CONDITION_TABLE_NAME, 
-    			Requests.REQUEST_ID + "=" + requestId, null);
+    			Conditions.REQUEST_ID + "=" + requestId, null);
 		mDb.delete(VARIABLE_TABLE_NAME, 
-    			Requests.REQUEST_ID + "=" + requestId, null);
+				Variables.REQUEST_ID + "=" + requestId, null);
 		return mDb.delete(REQUEST_TABLE_NAME, 
     			Requests._ID + "=" + requestId, null) > 0;
 	}

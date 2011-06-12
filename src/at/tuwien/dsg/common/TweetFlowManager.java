@@ -11,8 +11,16 @@ import java.util.regex.Pattern;
 //import twitter4j.User;
 
 import at.tuwien.dsg.common.Status;
+import at.tuwien.dsg.common.Request.Conditions;
+import at.tuwien.dsg.common.Request.HashTags;
+import at.tuwien.dsg.common.Request.Requests;
+import at.tuwien.dsg.common.Request.Variables;
 
+import android.content.ContentProviderClient;
 import android.content.Context;
+import android.database.Cursor;
+import android.os.RemoteException;
+import at.tuwien.dsg.entities.Condition;
 import at.tuwien.dsg.entities.Filter;
 import at.tuwien.dsg.entities.Request;
 import at.tuwien.dsg.entities.TweetflowPrimitive;
@@ -319,4 +327,176 @@ public class TweetFlowManager implements ITweetflowManager {
 		requests.addAll(dbAdapter.loadAllRequests());
 		refreshFilteredRequests();		
 	}
+	
+	public boolean loadRequestsFromContentProvider(ContentProviderClient requestsProvider,
+			ContentProviderClient hashTagsProvider, ContentProviderClient conditionsProvider,
+			ContentProviderClient variablesProvider) {
+		
+		if(requestsProvider == null || hashTagsProvider == null 
+				|| conditionsProvider == null || variablesProvider == null) {
+			return false;
+		}
+		
+		Cursor cRequests = null;
+		try {
+			cRequests = requestsProvider.query(Requests.CONTENT_URI, REQUEST_PROJECTION, null, null, null);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// cpc.release();
+		
+		if(cRequests != null) {
+			if(cRequests.getCount() > 0 ){
+				cRequests.moveToFirst();
+				
+				int idColumn = cRequests.getColumnIndex(Requests._ID);
+				int qualifierColumn = cRequests.getColumnIndex(Requests.QUALIFIER);
+				int addressedUserNameColumn = cRequests.getColumnIndex(Requests.ADDRESSED_USER_NAME);
+				int operationColumn = cRequests.getColumnIndex(Requests.OPERATION);
+				int serviceColumn = cRequests.getColumnIndex(Requests.SERVICE);
+				int urlColumn = cRequests.getColumnIndex(Requests.URL);
+				int completeRequestTextColumn = cRequests.getColumnIndex(Requests.COMPLETE_REQUEST_TEXT);
+				int tweetIdColumn = cRequests.getColumnIndex(Requests.TWEET_ID);
+				int senderNameColumn = cRequests.getColumnIndex(Requests.SENDER_NAME);
+				int createdAtColumn = cRequests.getColumnIndex(Requests.CREATED_AT);
+				
+				cRequests.moveToFirst();
+				while (cRequests.isAfterLast() == false) {
+					Request r = new Request();
+					r.setAddressedUser(cRequests.getString(addressedUserNameColumn));
+					r.setCompleteRequestText(cRequests.getString(completeRequestTextColumn));
+					r.setCreatedAt(new Date(cRequests.getLong(createdAtColumn)));
+					r.setOperation(cRequests.getString(operationColumn));
+					r.setService(cRequests.getString(serviceColumn));
+					r.setTweetId(cRequests.getLong(tweetIdColumn));
+					r.setUrl(cRequests.getString(urlColumn));
+					r.setQualifier(cRequests.getString(qualifierColumn));
+					r.setRequester(cRequests.getString(senderNameColumn));
+					
+					r.setSaved(true);
+					long id = cRequests.getLong(idColumn);
+					r.setDbId(id);
+					
+					Cursor htc = null;
+					try {
+						htc = hashTagsProvider.query(HashTags.CONTENT_URI, HASHTAG_PROJECTION, 
+								HashTags.REQUEST_ID + "=?", new String[] { ""+id }, null);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					if(htc != null) {
+						if(htc.getCount() > 0) {
+							htc.moveToFirst();
+							
+							int nameColumn = htc.getColumnIndex(HashTags.NAME);
+							
+							List<String> hashTags = new ArrayList<String>();
+							
+							for(int j=0; j<htc.getCount(); j++) {
+								hashTags.add(htc.getString(nameColumn));
+							}
+							r.setHashTags(hashTags);
+						}
+					}
+					
+					Cursor cc = null;
+					try {
+						cc = conditionsProvider.query(Conditions.CONTENT_URI, CONDITION_PROJECTION, null, null, null);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					if(cc != null) {
+						if(cc.getCount() > 0) {
+							cc.moveToFirst();
+							
+							int usernameColumn = cc.getColumnIndex(Conditions.USER_NAME);
+							int variableColumn = cc.getColumnIndex(Conditions.VARIABLE);
+							int valueColumn = cc.getColumnIndex(Conditions.VALUE);
+		
+							r.setCondition(new Condition(
+									cc.getString(usernameColumn), 
+									cc.getString(variableColumn), 
+									cc.getString(valueColumn)
+									));
+						}
+					}
+					
+					Cursor vc = null;
+					try {
+						vc = variablesProvider.query(Variables.CONTENT_URI, VARIABLE_PROJECTION, null, null, null);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					if(vc != null) {
+						if(vc.getCount() > 0) {
+							vc.moveToFirst();
+							
+							int nameColumn = vc.getColumnIndex(Variables.NAME);
+							int valueColumn = vc.getColumnIndex(Variables.VALUE);
+							
+							for(int j=0; j<vc.getCount(); j++) {
+								r.getVariables().put(vc.getString(nameColumn), 
+										vc.getString(valueColumn));
+							}
+						}
+					}
+					
+					requests.add(r);
+					cRequests.moveToNext();
+				}
+				cRequests.close();
+				//refreshFilteredRequests();
+			}
+		}
+		
+		
+		
+		requests.addAll(dbAdapter.loadAllRequests());
+		refreshFilteredRequests();		
+		
+		return true;
+	}
+	
+	final String[] REQUEST_PROJECTION = 
+		new String[] { 
+			Requests._ID,
+			Requests.QUALIFIER,
+			Requests.ADDRESSED_USER_NAME,
+			Requests.OPERATION,
+			Requests.SERVICE,
+			Requests.URL,
+			Requests.COMPLETE_REQUEST_TEXT,
+			Requests.TWEET_ID,
+			Requests.SENDER_NAME,
+			Requests.CREATED_AT
+		};
+	
+	final String[] HASHTAG_PROJECTION = 
+		new String[] { 
+			HashTags.REQUEST_ID,
+			HashTags.NAME
+		};
+	
+	final String[] CONDITION_PROJECTION = 
+		new String[] { 
+			Conditions.REQUEST_ID,
+			Conditions.USER_NAME,
+			Conditions.VARIABLE,
+			Conditions.VALUE
+		};
+	
+	final String[] VARIABLE_PROJECTION = 
+		new String[] { 
+			Variables.REQUEST_ID,
+			Variables.NAME,
+			Variables.VALUE
+		};
 }

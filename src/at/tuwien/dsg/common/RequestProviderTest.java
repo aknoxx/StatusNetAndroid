@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.test.ProviderTestCase2;
 import android.test.mock.MockContentResolver;
+import at.tuwien.dsg.RequestProvider;
 
 import java.io.BufferedReader;
 import java.io.FileDescriptor;

@@ -1,23 +1,19 @@
-package at.tuwien.dsg.common;
+package at.tuwien.dsg;
 
 import android.content.ContentProvider;
-import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.UriMatcher;
-import android.content.res.Resources;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.provider.LiveFolders;
-import android.text.TextUtils;
-import android.util.Log;
+import at.tuwien.dsg.common.Request;
+import at.tuwien.dsg.common.Request.Conditions;
+import at.tuwien.dsg.common.Request.HashTags;
+import at.tuwien.dsg.common.Request.Variables;
+import at.tuwien.dsg.common.RequestDbAdapter;
 import at.tuwien.dsg.common.Request.Requests;
 
-import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -27,9 +23,16 @@ import java.util.HashMap;
 public class RequestProvider extends ContentProvider {
 
     private static HashMap<String, String> sRequestsProjectionMap;
+    private static HashMap<String, String> sHashTagsProjectionMap;
+    private static HashMap<String, String> sConditionsProjectionMap;
+    private static HashMap<String, String> sVariablesProjectionMap;
 
     private static final int REQUESTS = 1;
-    private static final int REQUEST_ID = 2;
+    private static final int HASHTAGS = 2;
+    private static final int CONDITIONS = 3;
+    private static final int VARIABLES = 4;
+    
+    private static final int REQUEST_ID = 10;
 
     private static final UriMatcher sUriMatcher;
 
@@ -53,16 +56,24 @@ public class RequestProvider extends ContentProvider {
         /*qb.setTables(REQUEST_TABLE_NAME + " LEFT OUTER JOIN " + HASHTAG_TABLE_NAME
         		+ " ON (" + REQUEST_TABLE_NAME + "._id = " + HASHTAG_TABLE_NAME + ".requestId)");
         		*/
-        qb.setTables(RequestDbAdapter.REQUEST_TABLE_NAME);
+        
 
         switch (sUriMatcher.match(uri)) {
         case REQUESTS:
+        	qb.setTables(RequestDbAdapter.REQUEST_TABLE_NAME);
             qb.setProjectionMap(sRequestsProjectionMap);
             break;
-
-        case REQUEST_ID:
-            qb.setProjectionMap(sRequestsProjectionMap);
-            qb.appendWhere(Requests._ID + "=" + uri.getPathSegments().get(1));
+        case HASHTAGS:
+        	qb.setTables(RequestDbAdapter.HASHTAG_TABLE_NAME);
+            qb.setProjectionMap(sHashTagsProjectionMap);
+            break;
+        case CONDITIONS:
+        	qb.setTables(RequestDbAdapter.CONDITION_TABLE_NAME);
+            qb.setProjectionMap(sConditionsProjectionMap);
+            break;
+        case VARIABLES:
+        	qb.setTables(RequestDbAdapter.VARIABLE_TABLE_NAME);
+            qb.setProjectionMap(sVariablesProjectionMap);
             break;
 
         default:
@@ -119,7 +130,9 @@ public class RequestProvider extends ContentProvider {
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         sUriMatcher.addURI(Request.AUTHORITY, "requests", REQUESTS);
-        sUriMatcher.addURI(Request.AUTHORITY, "requests/#", REQUEST_ID);    
+        sUriMatcher.addURI(Request.AUTHORITY, "hashtags", HASHTAGS);
+        sUriMatcher.addURI(Request.AUTHORITY, "conditions", CONDITIONS);
+        sUriMatcher.addURI(Request.AUTHORITY, "variables", VARIABLES);
 
         sRequestsProjectionMap = new HashMap<String, String>();
         sRequestsProjectionMap.put(Requests._ID, Requests._ID);
@@ -132,11 +145,24 @@ public class RequestProvider extends ContentProvider {
         sRequestsProjectionMap.put(Requests.TWEET_ID, Requests.TWEET_ID);
         sRequestsProjectionMap.put(Requests.SENDER_NAME, Requests.SENDER_NAME);
         sRequestsProjectionMap.put(Requests.CREATED_AT, Requests.CREATED_AT);
-        sRequestsProjectionMap.put(Requests.REQUEST_ID, Requests.REQUEST_ID);
-        sRequestsProjectionMap.put(Requests.NAME, Requests.NAME);
-        sRequestsProjectionMap.put(Requests.USER_NAME, Requests.USER_NAME);
-        sRequestsProjectionMap.put(Requests.VARIABLE, Requests.VARIABLE);
-        sRequestsProjectionMap.put(Requests.VALUE, Requests.VALUE);
+
+        sHashTagsProjectionMap = new HashMap<String, String>();
+        sHashTagsProjectionMap.put(HashTags._ID, HashTags._ID);
+        sHashTagsProjectionMap.put(HashTags.REQUEST_ID, HashTags.REQUEST_ID);
+        sHashTagsProjectionMap.put(HashTags.NAME, HashTags.NAME);
+        
+        sConditionsProjectionMap = new HashMap<String, String>();
+        sConditionsProjectionMap.put(Conditions._ID, Requests._ID);
+        sConditionsProjectionMap.put(Conditions.REQUEST_ID, Conditions.REQUEST_ID);
+        sConditionsProjectionMap.put(Conditions.USER_NAME, Conditions.USER_NAME);
+        sConditionsProjectionMap.put(Conditions.VARIABLE, Conditions.VARIABLE);
+        sConditionsProjectionMap.put(Conditions.VALUE, Conditions.VALUE);
+        
+        sVariablesProjectionMap = new HashMap<String, String>();
+        sVariablesProjectionMap.put(Variables._ID, Variables._ID);
+        sVariablesProjectionMap.put(Variables.REQUEST_ID, Variables.REQUEST_ID);
+        sVariablesProjectionMap.put(Variables.NAME, Variables.NAME);
+        sVariablesProjectionMap.put(Variables.VALUE, Variables.VALUE);
     }
     
     /**

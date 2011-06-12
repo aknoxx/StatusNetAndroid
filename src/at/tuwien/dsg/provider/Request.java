@@ -15,7 +15,7 @@ public final class Request {
          * The content:// style URL for this table
          */
         public static final Uri CONTENT_URI
-                = Uri.parse("content://at.tuwien.dsg.provider.Request/requests");
+                = Uri.parse("content://at.tuwien.dsg.provider.RequestProvider/requests");
 
         /**
          * The default sort order for this table
@@ -75,6 +75,19 @@ public final class Request {
          * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
          */
         public static final String CREATED_AT = "createdAt";
+    }
+    
+    public static final class HashTags implements BaseColumns {
+        /**
+         * The content:// style URL for this table
+         */
+        public static final Uri CONTENT_URI
+                = Uri.parse("content://at.tuwien.dsg.provider.RequestProvider/hashtags");
+
+        /**
+         * The default sort order for this table
+         */
+        public static final String DEFAULT_SORT_ORDER = "modified DESC";
         
         /**
          * The title of the note
@@ -87,6 +100,25 @@ public final class Request {
          * <P>Type: TEXT</P>
          */
         public static final String NAME = "name";
+    }
+    
+    public static final class Conditions implements BaseColumns {
+        /**
+         * The content:// style URL for this table
+         */
+        public static final Uri CONTENT_URI
+                = Uri.parse("content://at.tuwien.dsg.provider.RequestProvider/conditions");
+
+        /**
+         * The default sort order for this table
+         */
+        public static final String DEFAULT_SORT_ORDER = "modified DESC";
+        
+        /**
+         * The title of the note
+         * <P>Type: TEXT</P>
+         */
+        public static final String REQUEST_ID = "requestId";
         
         /**
          * The title of the note
@@ -99,6 +131,37 @@ public final class Request {
          * <P>Type: TEXT</P>
          */
         public static final String VARIABLE = "variable";
+        
+        /**
+         * The title of the note
+         * <P>Type: TEXT</P>
+         */
+        public static final String VALUE = "value";
+    }
+    
+    public static final class Variables implements BaseColumns {
+        /**
+         * The content:// style URL for this table
+         */
+        public static final Uri CONTENT_URI
+                = Uri.parse("content://at.tuwien.dsg.provider.RequestProvider/variables");
+
+        /**
+         * The default sort order for this table
+         */
+        public static final String DEFAULT_SORT_ORDER = "modified DESC";
+        
+        /**
+         * The title of the note
+         * <P>Type: TEXT</P>
+         */
+        public static final String REQUEST_ID = "requestId";
+        
+        /**
+         * The title of the note
+         * <P>Type: TEXT</P>
+         */
+        public static final String NAME = "name";
         
         /**
          * The title of the note
