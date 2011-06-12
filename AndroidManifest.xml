@@ -42,6 +42,23 @@
         		  android:label="@string/app_name"
                   android:theme="@android:style/Theme.NoTitleBar">             
         </activity>
+        <activity android:name=".activities.LoginActivity"
+        		  android:label="@string/app_name"
+                  android:theme="@android:style/Theme.NoTitleBar">             
+        </activity>
+        <activity android:name=".activities.OAuthActivity"
+			android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="bloa-app" android:host="twitt" />
+			</intent-filter>
+        </activity>
+        <activity android:name=".activities.InfoActivity"
+        		  android:label="@string/app_name"
+                  android:theme="@android:style/Theme.NoTitleBar">             
+        </activity>
         <activity android:name=".activities.SearchActivity"
         		  android:label="@string/app_name"
                   android:theme="@android:style/Theme.NoTitleBar">             

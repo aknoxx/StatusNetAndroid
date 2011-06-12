@@ -77,14 +77,15 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 
-		setContentView(R.layout.action_bar);
+		setContentView(R.layout.request_view);
 		actionBar = (ActionBar) findViewById(R.id.actionbar);
 		
 		actionBar.setTitle("Requests");
-		final Action filterAction = new IntentAction(this, createFilterIntent(), R.drawable.ic_title_share_default);
+		final Action infoIntentAction = new IntentAction(this, new Intent(this, InfoActivity.class), R.drawable.info);
 		
 		actionBar.addAction(new RefreshAction());
 		actionBar.addAction(new FilterAction());        
+		actionBar.addAction(infoIntentAction);
 		
 		//View header = getLayoutInflater().inflate(R.layout.action_bar, null);
 		ListView listView = getListView();
@@ -382,17 +383,10 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
         return null;
     }
     
-    public static Intent createIntent(Context context) {
-        Intent i = new Intent(context, ActionSample.class);
+    public static Intent createInfoIntent(Context context) {
+        Intent i = new Intent(context, InfoActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         return i;
-    }
-
-    private Intent createFilterIntent() {
-        final Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_TEXT, "Shared from the ActionBar widget.");
-        return Intent.createChooser(intent, "Share");
     }
     
     final String[] REQUEST_PROJECTION = 

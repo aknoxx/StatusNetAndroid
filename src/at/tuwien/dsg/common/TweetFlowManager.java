@@ -405,7 +405,8 @@ public class TweetFlowManager implements ITweetflowManager {
 					
 					Cursor cc = null;
 					try {
-						cc = conditionsProvider.query(Conditions.CONTENT_URI, CONDITION_PROJECTION, null, null, null);
+						cc = conditionsProvider.query(Conditions.CONTENT_URI, CONDITION_PROJECTION, 
+								Conditions.REQUEST_ID + "=?", new String[] { ""+id }, null);
 					} catch (RemoteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -429,7 +430,8 @@ public class TweetFlowManager implements ITweetflowManager {
 					
 					Cursor vc = null;
 					try {
-						vc = variablesProvider.query(Variables.CONTENT_URI, VARIABLE_PROJECTION, null, null, null);
+						vc = variablesProvider.query(Variables.CONTENT_URI, VARIABLE_PROJECTION,
+								Variables.REQUEST_ID + "=?", new String[] { ""+id }, null);
 					} catch (RemoteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

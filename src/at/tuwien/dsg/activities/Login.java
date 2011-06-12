@@ -125,7 +125,7 @@ public class Login extends Activity {
 	
 	@Override
 	public void onDestroy() {
-	    Log.i("OAUTH", "onDestroy()");
+	    Log.i("OAuthActivity", "onDestroy()");
 	    Toast.makeText(this, "destroy", Toast.LENGTH_LONG).show();
 	    super.onDestroy();
 	}
