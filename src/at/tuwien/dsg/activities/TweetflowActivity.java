@@ -87,46 +87,13 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		actionBar.addAction(new FilterAction());        
 		actionBar.addAction(infoIntentAction);
 		
-		//View header = getLayoutInflater().inflate(R.layout.action_bar, null);
 		ListView listView = getListView();
-		//listView.addHeaderView(header);
-		
 		tfm = new TweetFlowManager(this);	
-		
 		
 		requestsProvider = getContentResolver().acquireContentProviderClient(Requests.CONTENT_URI);
 		hashTagsProvider = getContentResolver().acquireContentProviderClient(HashTags.CONTENT_URI);
 		conditionsProvider = getContentResolver().acquireContentProviderClient(Conditions.CONTENT_URI);
 		variablesProvider = getContentResolver().acquireContentProviderClient(Variables.CONTENT_URI);
-		
-		/*
-         * Using the URI passed in with the triggering Intent, gets the note or notes in
-         * the provider.
-         * Note: This is being done on the UI thread. It will block the thread until the query
-         * completes. In a sample app, going against a simple provider based on a local database,
-         * the block will be momentary, but in a real app you should use
-         * android.content.AsyncQueryHandler or android.os.AsyncTask.
-         * 
-         * --> use CursorLoader !!!
-         */
-		/*
-        mCursor = managedQuery(
-            mUri,         // The URI that gets multiple notes from the provider.
-            REQUEST_PROJECTION,   // A projection that returns the note ID and note content for each note.
-            null,         // No "where" clause selection criteria.
-            null,         // No "where" clause selection values.
-            null          // Use the default sort order (modification date, descending)
-        );	*/
-
-        
-        // TODO
-        // c.setNotificationUri(getContext().getContentResolver(), uri);
-		
-		//tfm.setTestTFs();
-		
-		
-		//requestTimeline = tfm.loadFilteredRequests();
-		//rs = requestTimeline.toArray(new Request[requestTimeline.size()]);	
 		
 		adapter = new MyArrayAdapter(this, tfm.getFilteredRequests());
 		this.setListAdapter(adapter);
@@ -158,13 +125,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
         	showDialog(FILTER_DIALOG);
         }
     }
-	
-	/*
-	private void loadRequests() {
-		ArrayList<Request> requestTimeline = tfm.receiveTweetflows();
-		rs = requestTimeline.toArray(new Request[requestTimeline.size()]);	
-		adapter.notifyDataSetChanged();
-	}
+
 /*
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
@@ -223,7 +184,6 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
     	case DELETE_ID:
     		
     		tfm.deleteSavedRequests();
-    		//requestTimeline = tfm.loadFilteredRequests();
     		adapter.notifyDataSetChanged();
     		
     		Toast.makeText(this, "All saved Requests deleted!", Toast.LENGTH_LONG)
@@ -254,8 +214,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
     	case CONTEXT_DELETE_REQUEST_ID:
     		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 
-	       	tfm.deleteRequest((int)info.position);
-	       	//tfm.loadFilteredRequests();
+	       	tfm.deleteRequest((int)info.position);;
 	       	adapter.notifyDataSetChanged();
 	       	
 	       	Toast.makeText(this, "Request deleted successfully!", Toast.LENGTH_LONG)
@@ -321,17 +280,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 			adapter.notifyDataSetChanged();
 		}
 	}
-    
-    
-    @Override
-    protected void onPrepareDialog(int id, Dialog dialog) {
-        /*ListView lv = ((AlertDialog) dialog).getListView();
-        boolean[] checked = myDialog.getCheckedBoxes();
-        for (int i=0; i<checked.length; i++)
-            if (checked[i])
-                lv.setItemChecked(i, true);*/
-    }
-    
+
     @Override
     protected Dialog onCreateDialog(int id) {
         switch (id) {
