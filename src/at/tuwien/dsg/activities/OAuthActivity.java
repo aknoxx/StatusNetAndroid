@@ -26,21 +26,19 @@ public class OAuthActivity extends Activity {
 	public static final String REQUEST_TOKEN = "request_token";
 	public static final String REQUEST_SECRET = "request_secret";
 
-	//public static final String TWITTER_REQUEST_TOKEN_URL = "http://twitter.com/oauth/request_token";
-	//public static final String TWITTER_ACCESS_TOKEN_URL = "http://twitter.com/oauth/access_token";
-	//public static final String TWITTER_AUTHORIZE_URL = "http://twitter.com/oauth/authorize";
+//	public static final String TWITTER_REQUEST_TOKEN_URL = "http://twitter.com/oauth/request_token";
+//	public static final String TWITTER_ACCESS_TOKEN_URL = "http://twitter.com/oauth/access_token";
+//	public static final String TWITTER_AUTHORIZE_URL = "http://twitter.com/oauth/authorize";	
 	
-	/*
-	public static final String TWITTER_REQUEST_TOKEN_URL = "https://identi.ca/api/oauth/request_token";
-	public static final String TWITTER_ACCESS_TOKEN_URL = "https://identi.ca/api/oauth/access_token";
-	public static final String TWITTER_AUTHORIZE_URL = "https://identi.ca/api/oauth/authorize";
-*/
+//	public static final String TWITTER_REQUEST_TOKEN_URL = "https://identi.ca/api/oauth/request_token";
+//	public static final String TWITTER_ACCESS_TOKEN_URL = "https://identi.ca/api/oauth/access_token";
+//	public static final String TWITTER_AUTHORIZE_URL = "https://identi.ca/api/oauth/authorize";
 	
 	public static final String TWITTER_REQUEST_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/request_token";
 	public static final String TWITTER_ACCESS_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/access_token";
 	public static final String TWITTER_AUTHORIZE_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/authorize";
 	
-	private static final Uri CALLBACK_URI = Uri.parse("bloa-app://twitt");
+	private static final Uri CALLBACK_URI = Uri.parse("status-net-android://oauth");
 
 	public static final String PREFS = "MyPrefsFile";
 

@@ -52,7 +52,7 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="bloa-app" android:host="twitt" />
+				<data android:scheme="status-net-android" android:host="oauth" />
 			</intent-filter>
         </activity>
         <activity android:name=".activities.InfoActivity"

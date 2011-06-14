@@ -51,6 +51,7 @@ public class TweetFlowManager implements ITweetflowManager {
 	private static final CharSequence[] qualifiers = { "SR", "SF", "TF", "LG", "VA",
 		"AccessVariable", "AccessServiceResult" };
 	
+	
 
 	public TweetFlowManager(Context ctx) {
 		displayFilter = new HashMap<CharSequence, Boolean>();
@@ -252,6 +253,18 @@ public class TweetFlowManager implements ITweetflowManager {
 		return requests;
 	}
 	
+	public void addBloa(ConnManager.UserStatus status) {
+		Request request;
+		if((request = extractRequestFromBloa(status)) != null) {
+			requests.add(request);
+			refreshFilteredRequests();
+		}	
+	}
+	
+	public Request extractRequestFromBloa(ConnManager.UserStatus status) {
+		return new TweetflowPrimitive().extractRequestFromBloaStatus(status);
+	}
+	
 	public Request extractRequest(Status status) {
 		/*
 		 * Status s = new Status();
@@ -330,20 +343,14 @@ public class TweetFlowManager implements ITweetflowManager {
 	
 	public boolean loadRequestsFromContentProvider(ContentProviderClient requestsProvider,
 			ContentProviderClient hashTagsProvider, ContentProviderClient conditionsProvider,
-			ContentProviderClient variablesProvider) {
+			ContentProviderClient variablesProvider) throws RemoteException {
 		
 		if(requestsProvider == null || hashTagsProvider == null 
 				|| conditionsProvider == null || variablesProvider == null) {
 			return false;
 		}
 		
-		Cursor cRequests = null;
-		try {
-			cRequests = requestsProvider.query(Requests.CONTENT_URI, REQUEST_PROJECTION, null, null, null);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Cursor cRequests = requestsProvider.query(Requests.CONTENT_URI, REQUEST_PROJECTION, null, null, null);
 		
 		// cpc.release();
 		
@@ -379,14 +386,8 @@ public class TweetFlowManager implements ITweetflowManager {
 					long id = cRequests.getLong(idColumn);
 					r.setDbId(id);
 					
-					Cursor htc = null;
-					try {
-						htc = hashTagsProvider.query(HashTags.CONTENT_URI, HASHTAG_PROJECTION, 
+					Cursor htc = hashTagsProvider.query(HashTags.CONTENT_URI, HASHTAG_PROJECTION, 
 								HashTags.REQUEST_ID + "=?", new String[] { ""+id }, null);
-					} catch (RemoteException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 					
 					if(htc != null) {
 						if(htc.getCount() > 0) {
@@ -403,14 +404,8 @@ public class TweetFlowManager implements ITweetflowManager {
 						}
 					}
 					
-					Cursor cc = null;
-					try {
-						cc = conditionsProvider.query(Conditions.CONTENT_URI, CONDITION_PROJECTION, 
+					Cursor cc = conditionsProvider.query(Conditions.CONTENT_URI, CONDITION_PROJECTION, 
 								Conditions.REQUEST_ID + "=?", new String[] { ""+id }, null);
-					} catch (RemoteException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 					
 					if(cc != null) {
 						if(cc.getCount() > 0) {
@@ -428,14 +423,8 @@ public class TweetFlowManager implements ITweetflowManager {
 						}
 					}
 					
-					Cursor vc = null;
-					try {
-						vc = variablesProvider.query(Variables.CONTENT_URI, VARIABLE_PROJECTION,
+					Cursor vc = variablesProvider.query(Variables.CONTENT_URI, VARIABLE_PROJECTION,
 								Variables.REQUEST_ID + "=?", new String[] { ""+id }, null);
-					} catch (RemoteException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 					
 					if(vc != null) {
 						if(vc.getCount() > 0) {

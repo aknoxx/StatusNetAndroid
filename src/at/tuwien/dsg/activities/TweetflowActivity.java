@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.markupartist.android.widget.ActionBar;
 import com.markupartist.android.widget.ActionBar.AbstractAction;
 import com.markupartist.android.widget.ActionBar.Action;
@@ -33,6 +37,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import at.tuwien.dsg.R;
+import at.tuwien.dsg.common.ConnManager;
 import at.tuwien.dsg.common.Request.Conditions;
 import at.tuwien.dsg.common.Request.HashTags;
 import at.tuwien.dsg.common.Request.Requests;
@@ -70,12 +75,15 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
     private ContentProviderClient variablesProvider;
 	
 	private ActionBar actionBar;
+	private ConnManager mBloa;
 	
 	private Menu menu;
 	
 	/** Called when the activity is first created. */
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
+		
+		mBloa = ConnManager.getInstance(getApplicationContext());
 
 		setContentView(R.layout.request_view);
 		actionBar = (ActionBar) findViewById(R.id.actionbar);
@@ -99,6 +107,81 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		this.setListAdapter(adapter);
 		
 		registerForContextMenu(listView);
+		
+		if(!mBloa.isLoggedIn()) {
+			// TODO
+			mBloa.setLoggedIn(true);
+			startActivity(new Intent(this, OAuthActivity.class));
+		}
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		mBloa.lookupSavedUserKeys();
+		new GetCredentialsTask().execute();
+	}
+	
+	protected void onFinish() {
+		mBloa.shutdownConnectionManager();
+	}
+	
+	//----------------------------
+	// This task is run on every onResume(), to make sure the current credentials are valid.
+	// This is probably overkill for a non-educational program
+	private class GetCredentialsTask extends AsyncTask<Void, Void, JSONObject> {
+ 
+		ProgressDialog authDialog;
+ 
+		@Override
+		protected void onPreExecute() {
+			authDialog = ProgressDialog.show(TweetflowActivity.this, 
+				getText(R.string.auth_progress_title), 
+				getText(R.string.auth_progress_text),
+				true,	// indeterminate duration
+				false); // not cancel-able
+		}
+		
+		@Override
+		protected JSONObject doInBackground(Void... arg0) {
+			return mBloa.getCredentials();
+		}
+		
+		// This is in the UI thread, so we can mess with the UI
+		protected void onPostExecute(JSONObject jso) {
+			authDialog.dismiss();
+			if(jso != null) {
+				ConnManager.TimelineSelector ss = mBloa.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING);
+				new GetTimelineTask().execute(ss);
+			}
+		}
+	}
+	
+	private class GetTimelineTask extends AsyncTask<ConnManager.TimelineSelector, Void, JSONArray> {
+		
+		@Override
+		protected JSONArray doInBackground(ConnManager.TimelineSelector... params) {
+			return mBloa.getTimeline(params[0]);
+		}
+		
+		// This is in the UI thread, so we can mess with the UI
+		protected void onPostExecute(JSONArray array) {
+			if(array != null) {
+				try {
+					for(int i = 0; i < array.length(); ++i) {
+						JSONObject status = array.getJSONObject(i);
+						ConnManager.UserStatus s = mBloa.new UserStatus(status);
+						tfm.addBloa(s);
+					}
+					adapter.notifyDataSetChanged();
+					
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			} else {
+			}
+		}
 	}
 	
 	private class RefreshAction extends AbstractAction {
@@ -267,8 +350,11 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
  
 		@Override
 		protected Boolean doInBackground(ContentProviderClient... params) {
-			return tfm.loadRequestsFromContentProvider(params[0], params[1], params[2], params[3]);
-			//return tfm.loadFilteredRequests();
+			try {
+				return tfm.loadRequestsFromContentProvider(params[0], params[1], params[2], params[3]);
+			} catch (RemoteException e) {
+				return false;
+			}
 		}
  
 		// This is in the UI thread, so we can mess with the UI

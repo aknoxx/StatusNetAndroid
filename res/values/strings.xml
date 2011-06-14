@@ -7,5 +7,9 @@
     <string name="login">Login...</string>
     <string name="request_progress_title">Loading data</string>
     <string name="request_progress_text">Retrieving new requests...</string>
+    <string name="tweet_error">There was some kind of problem!</string>
+    <string name="bad_value">Bad Value</string>
+    <string name="auth_progress_title">Authenticating...</string>
+    <string name="auth_progress_text">Fetching your profile information.</string>
 
 </resources>
