@@ -113,18 +113,14 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 			mBloa.setLoggedIn(true);
 			startActivity(new Intent(this, OAuthActivity.class));
 		}
-		else {
-			mBloa.lookupSavedUserKeys();
-			new GetCredentialsTask().execute();
-		}
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
 		
-		//mBloa.lookupSavedUserKeys();
-		//new GetCredentialsTask().execute();
+		mBloa.lookupSavedUserKeys();
+		new GetCredentialsTask().execute();
 	}
 	
 	protected void onFinish() {
@@ -162,44 +158,6 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		}
 	}
 	
-	private class GetTimelineWithProgressTask extends AsyncTask<ConnManager.TimelineSelector, Void, JSONArray> {
-		ProgressDialog authDialog;
-		 
-		@Override
-		protected void onPreExecute() {
-			authDialog = ProgressDialog.show(TweetflowActivity.this, 
-				getText(R.string.auth_progress_title), 
-				getText(R.string.auth_progress_text),
-				true,	// indeterminate duration
-				false); // not cancel-able
-		}
-		
-		@Override
-		protected JSONArray doInBackground(ConnManager.TimelineSelector... params) {
-			return mBloa.getTimeline(params[0]);
-		}
-		
-		// This is in the UI thread, so we can mess with the UI
-		protected void onPostExecute(JSONArray array) {
-			if(array != null) {
-				try {
-					for(int i = 0; i < array.length(); ++i) {
-						JSONObject status = array.getJSONObject(i);
-						ConnManager.UserStatus s = mBloa.new UserStatus(status);
-						tfm.addBloa(s);
-					}
-					adapter.notifyDataSetChanged();
-					authDialog.dismiss();
-					
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-			} else {
-			}
-		}
-	}	
-	
-	
 	private class GetTimelineTask extends AsyncTask<ConnManager.TimelineSelector, Void, JSONArray> {
 		
 		@Override
@@ -234,11 +192,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 
         @Override
         public void performAction(View view) {
-//        	tfm.downloadNewTweets();
-        	ConnManager.TimelineSelector ss = mBloa.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING);
-			new GetTimelineWithProgressTask().execute(ss);
-			
-//        	adapter.notifyDataSetChanged();
+        	tfm.downloadNewTweets();
+        	adapter.notifyDataSetChanged();
         }
     }
 	

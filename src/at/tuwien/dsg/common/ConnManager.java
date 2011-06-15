@@ -42,12 +42,12 @@ import at.tuwien.dsg.activities.OAuthActivity;
 public class ConnManager {
 	public static final String TAG = "ConnManager";
 	
-	public static final String VERIFY_URL_STRING = "http://twitter.com/account/verify_credentials.json";
-	public static final String PUBLIC_TIMELINE_URL_STRING = "http://twitter.com/statuses/public_timeline.json";
-	public static final String USER_TIMELINE_URL_STRING = "http://twitter.com/statuses/user_timeline.json";
-	public static final String HOME_TIMELINE_URL_STRING = "http://api.twitter.com/1/statuses/home_timeline.json";	
-	public static final String FRIENDS_TIMELINE_URL_STRING = "http://api.twitter.com/1/statuses/friends_timeline.json";	
-	public static final String STATUSES_URL_STRING = "http://twitter.com/statuses/update.json";	
+//	public static final String VERIFY_URL_STRING = "http://twitter.com/account/verify_credentials.json";
+//	public static final String PUBLIC_TIMELINE_URL_STRING = "http://twitter.com/statuses/public_timeline.json";
+//	public static final String USER_TIMELINE_URL_STRING = "http://twitter.com/statuses/user_timeline.json";
+//	public static final String HOME_TIMELINE_URL_STRING = "http://api.twitter.com/1/statuses/home_timeline.json";	
+//	public static final String FRIENDS_TIMELINE_URL_STRING = "http://api.twitter.com/1/statuses/friends_timeline.json";	
+//	public static final String STATUSES_URL_STRING = "http://twitter.com/statuses/update.json";	
 
 	/*
 	public static final String VERIFY_URL_STRING = "http://identi.ca/api/account/verify_credentials.json";
@@ -58,26 +58,26 @@ public class ConnManager {
 	public static final String STATUSES_URL_STRING = "http://identi.ca/api/statuses/update.json";	
 	*/
 	
-//	public static final String VERIFY_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/account/verify_credentials.json";
-//	public static final String PUBLIC_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/public_timeline.json";
-//	public static final String USER_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/user_timeline.json";
-//	public static final String HOME_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/home_timeline.json";	
-//	public static final String FRIENDS_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/friends_timeline.json";	
-//	public static final String STATUSES_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/update.json";
+	public static final String VERIFY_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/account/verify_credentials.json";
+	public static final String PUBLIC_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/public_timeline.json";
+	public static final String USER_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/user_timeline.json";
+	public static final String HOME_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/home_timeline.json";	
+	public static final String FRIENDS_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/friends_timeline.json";	
+	public static final String STATUSES_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/update.json";
 	
 	ProgressDialog postDialog = null;
 
-	public static final String TWITTER_REQUEST_TOKEN_URL = "http://twitter.com/oauth/request_token";
-	public static final String TWITTER_ACCESS_TOKEN_URL = "http://twitter.com/oauth/access_token";
-	public static final String TWITTER_AUTHORIZE_URL = "http://twitter.com/oauth/authorize";
+//	public static final String TWITTER_REQUEST_TOKEN_URL = "http://twitter.com/oauth/request_token";
+//	public static final String TWITTER_ACCESS_TOKEN_URL = "http://twitter.com/oauth/access_token";
+//	public static final String TWITTER_AUTHORIZE_URL = "http://twitter.com/oauth/authorize";
 	/*
 	public static final String TWITTER_REQUEST_TOKEN_URL = "https://identi.ca/api/oauth/request_token";
 	public static final String TWITTER_ACCESS_TOKEN_URL = "https://identi.ca/api/oauth/access_token";
 	public static final String TWITTER_AUTHORIZE_URL = "https://identi.ca/api/oauth/authorize";
 	*/
-//	public static final String TWITTER_REQUEST_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/request_token";
-//	public static final String TWITTER_ACCESS_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/access_token";
-//	public static final String TWITTER_AUTHORIZE_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/authorize";
+	public static final String TWITTER_REQUEST_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/request_token";
+	public static final String TWITTER_ACCESS_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/access_token";
+	public static final String TWITTER_AUTHORIZE_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/authorize";
 
 	private Context ctx;
 	
