@@ -63,7 +63,7 @@ public class TestActivity extends ActionBarActivity {
         Filter lg_Filter = new Filter("LG",
         		regexLG);
         
-        TweetFlowManager fm = new TweetFlowManager(this);
+        TweetFlowManager fm = TweetFlowManager.getInstance(this);
         fm.addFilter(lg_Filter);
         fm.setFilter(lg_Filter);
         

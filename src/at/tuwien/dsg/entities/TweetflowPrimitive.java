@@ -1,6 +1,9 @@
 package at.tuwien.dsg.entities;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,6 +18,9 @@ public class TweetflowPrimitive {
 	private String pattern;
 	private String url;
 	*/
+	
+	private SimpleDateFormat twitterDate = new SimpleDateFormat(
+            "EEE MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH);
 	
 	private final String requestPatternString = "[A-Z]{2}" +
 					"( @\\w+)? " +
@@ -70,7 +76,7 @@ public class TweetflowPrimitive {
 		this.pattern = pattern;
 	}*/
 	
-	public Request extractRequestFromBloaStatus(ConnManager.UserStatus status) {
+	public Request extractRequestFromBloaStatus(ConnManager.UserStatus status) throws ParseException {
 		final String statusText = status.getText();
 		Request request = new Request();
 		
@@ -144,12 +150,8 @@ public class TweetflowPrimitive {
 			}
 			
 			request.setTweetId(status.getId());
-			// TODO
-			//request.setCreatedAt(status.getCreatedAt());
-			request.setCreatedAt(new Date());
-			// TODO
-			// request.setRequester(status.getSender());		
-			request.setRequester("From me:)");
+			request.setCreatedAt(twitterDate.parse(status.getCreatedAt()));
+			request.setRequester(status.getUserName());
 
 			return request;
 		}
@@ -167,12 +169,8 @@ public class TweetflowPrimitive {
 			request.getVariables().put(parts[1], parts[2]);			
 
 			request.setTweetId(status.getId());
-			// TODO
-			//request.setCreatedAt(status.getCreatedAt());
-			request.setCreatedAt(new Date());
-			// TODO
-			// request.setRequester(status.getSender());		
-			request.setRequester("From me:)");	
+			request.setCreatedAt(twitterDate.parse(status.getCreatedAt()));
+			request.setRequester(status.getUserName());	
 
 			return request;
 		}
@@ -191,12 +189,8 @@ public class TweetflowPrimitive {
 			request.getVariables().put(parts[1].substring(0, parts[1].length()-1), null); // remove ?
 			
 			request.setTweetId(status.getId());
-			// TODO
-			//request.setCreatedAt(status.getCreatedAt());
-			request.setCreatedAt(new Date());
-			// TODO
-			// request.setRequester(status.getSender());		
-			request.setRequester("From me:)");		
+			request.setCreatedAt(twitterDate.parse(status.getCreatedAt()));
+			request.setRequester(status.getUserName());		
 
 			return request;
 		}
@@ -216,12 +210,8 @@ public class TweetflowPrimitive {
 			request.setService(parts[2].substring(0, parts[2].length()-1)); // remove ?			
 
 			request.setTweetId(status.getId());
-			// TODO
-			//request.setCreatedAt(status.getCreatedAt());
-			request.setCreatedAt(new Date());
-			// TODO
-			// request.setRequester(status.getSender());		
-			request.setRequester("From me:)");		
+			request.setCreatedAt(twitterDate.parse(status.getCreatedAt()));
+			request.setRequester(status.getUserName());		
 
 			return request;
 		}

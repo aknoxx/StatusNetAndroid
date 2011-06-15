@@ -3,6 +3,7 @@ package at.tuwien.dsg.activities;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.view.LayoutInflater;
@@ -19,8 +20,8 @@ import at.tuwien.dsg.entities.Request;
 public class MyArrayAdapter extends ArrayAdapter<Request> {
 	private final Activity context;
 	private final ArrayList<Request> requests;
-	private SimpleDateFormat longDate = new SimpleDateFormat("EEE, MMM d, HH:mm:ss");
-	private SimpleDateFormat shortDate = new SimpleDateFormat("HH:mm:ss");
+	private SimpleDateFormat longDate = new SimpleDateFormat("EEE, MMM d, HH:mm:ss", Locale.ENGLISH);
+	private SimpleDateFormat shortDate = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
 
 	public MyArrayAdapter(Activity context, ArrayList<Request> requests) {
 		super(context, R.layout.r_item, requests);

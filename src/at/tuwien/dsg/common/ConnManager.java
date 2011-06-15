@@ -124,15 +124,17 @@ public class ConnManager {
 				Keys.TWITTER_CONSUMER_SECRET);
 	}
 	
-	public void lookupSavedUserKeys() {
+	public boolean getKeysAvailable() {
 		// We look for saved user keys
 		if(mSettings.contains(OAuthActivity.USER_TOKEN) && mSettings.contains(OAuthActivity.USER_SECRET)) {
 			mToken = mSettings.getString(OAuthActivity.USER_TOKEN, null);
 			mSecret = mSettings.getString(OAuthActivity.USER_SECRET, null);
 			if(!(mToken == null || mSecret == null)) {
 				mConsumer.setTokenWithSecret(mToken, mSecret);
+				return true;
 			}
 		}
+		return false;
 	}
 	
 	public void shutdownConnectionManager() {

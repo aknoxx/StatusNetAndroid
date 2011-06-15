@@ -1,5 +1,6 @@
 package at.tuwien.dsg.common;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,6 +38,8 @@ public class TweetFlowManager implements ITweetflowManager {
 	private ArrayList<Request> requests;
 	private ArrayList<Request> filteredRequests;
 	
+	private Long newestSavedId = new Long(0);
+	
 	public ArrayList<Request> getFilteredRequests() {
 		return filteredRequests;
 	}
@@ -52,8 +55,16 @@ public class TweetFlowManager implements ITweetflowManager {
 		"AccessVariable", "AccessServiceResult" };
 	
 	
+	private static TweetFlowManager instance = null;
+	
+	public static TweetFlowManager getInstance(Context ctx) {
+		if(instance == null) {
+			instance = new TweetFlowManager(ctx);
+		}
+		return instance;
+	}	
 
-	public TweetFlowManager(Context ctx) {
+	private TweetFlowManager(Context ctx) {
 		displayFilter = new HashMap<CharSequence, Boolean>();
 		for (CharSequence qualifier : qualifiers) {
 			displayFilter.put(qualifier, new Boolean(true));
@@ -71,6 +82,10 @@ public class TweetFlowManager implements ITweetflowManager {
 		//		.getXml(R.xml.tweetflow_primitives_filters));
 	}
 	
+	public Long getNewestSavedId() {
+		return newestSavedId;
+	}
+
 	public void downloadNewTweets() {
 		
 		requests.addAll(0, testDownloadData());
@@ -87,6 +102,9 @@ public class TweetFlowManager implements ITweetflowManager {
 		for (Request request : filteredRequests) {
 			if(dbAdapter.saveRequest(request) > 0) {
 				request.setSaved(true);
+				if(request.getTweetId() > newestSavedId) {
+					newestSavedId = request.getTweetId();
+				}
 			}			
 			else {
 				success = false;
@@ -256,13 +274,17 @@ public class TweetFlowManager implements ITweetflowManager {
 	public void addBloa(ConnManager.UserStatus status) {
 		Request request;
 		if((request = extractRequestFromBloa(status)) != null) {
-			requests.add(request);
+			requests.add(0, request);
 			refreshFilteredRequests();
 		}	
 	}
 	
 	public Request extractRequestFromBloa(ConnManager.UserStatus status) {
-		return new TweetflowPrimitive().extractRequestFromBloaStatus(status);
+		try {
+			return new TweetflowPrimitive().extractRequestFromBloaStatus(status);
+		} catch (ParseException e) {
+			return null;
+		}
 	}
 	
 	public Request extractRequest(Status status) {

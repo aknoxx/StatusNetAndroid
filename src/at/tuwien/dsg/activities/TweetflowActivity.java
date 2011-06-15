@@ -77,6 +77,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	private ActionBar actionBar;
 	private ConnManager mBloa;
 	
+	private boolean loggedIn = false;
+	
 	private Menu menu;
 	
 	/** Called when the activity is first created. */
@@ -96,7 +98,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		actionBar.addAction(infoIntentAction);
 		
 		ListView listView = getListView();
-		tfm = new TweetFlowManager(this);	
+		tfm = TweetFlowManager.getInstance(this);
 		
 		requestsProvider = getContentResolver().acquireContentProviderClient(Requests.CONTENT_URI);
 		hashTagsProvider = getContentResolver().acquireContentProviderClient(HashTags.CONTENT_URI);
@@ -108,19 +110,25 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		
 		registerForContextMenu(listView);
 		
-		if(!mBloa.isLoggedIn()) {
-			// TODO
-			mBloa.setLoggedIn(true);
-			startActivity(new Intent(this, OAuthActivity.class));
+		if(!loggedIn) {
+			if(mBloa.getKeysAvailable()) {
+				new GetCredentialsTask().execute();
+			}
+			else {
+				startActivity(new Intent(this, OAuthActivity.class));
+			}
 		}
+		
+//		if(!mBloa.isLoggedIn()) {
+//			// TODO
+//			mBloa.setLoggedIn(true);
+//			startActivity(new Intent(this, OAuthActivity.class));
+//		}
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
-		
-		mBloa.lookupSavedUserKeys();
-		new GetCredentialsTask().execute();
 	}
 	
 	protected void onFinish() {
@@ -152,7 +160,10 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		protected void onPostExecute(JSONObject jso) {
 			authDialog.dismiss();
 			if(jso != null) {
-				ConnManager.TimelineSelector ss = mBloa.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING);
+				loggedIn = true;
+				ConnManager.TimelineSelector ss = 
+					mBloa.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING,
+	        				tfm.getNewestSavedId(), null, null, null);
 				new GetTimelineTask().execute(ss);
 			}
 		}
@@ -184,6 +195,44 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		}
 	}
 	
+	private class GetTimelineWithProgressTask extends AsyncTask<ConnManager.TimelineSelector, Void, JSONArray> {
+		
+		ProgressDialog retrieveDialog;
+		 
+		@Override
+		protected void onPreExecute() {
+			retrieveDialog = ProgressDialog.show(TweetflowActivity.this, 
+				getText(R.string.request_progress_title), 
+				getText(R.string.request_progress_text), 
+				true,	// indeterminate duration
+				false); // not cancel-able
+		}
+		
+		@Override
+		protected JSONArray doInBackground(ConnManager.TimelineSelector... params) {
+			return mBloa.getTimeline(params[0]);
+		}
+		
+		// This is in the UI thread, so we can mess with the UI
+		protected void onPostExecute(JSONArray array) {
+			if(array != null) {
+				try {
+					for(int i = array.length()-1; i >=0 ; i--) {
+						JSONObject status = array.getJSONObject(i);
+						ConnManager.UserStatus s = mBloa.new UserStatus(status);
+						tfm.addBloa(s);
+					}
+					retrieveDialog.dismiss();
+					adapter.notifyDataSetChanged();
+					
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			} else {
+			}
+		}
+	}
+	
 	private class RefreshAction extends AbstractAction {
 
         public RefreshAction() {
@@ -192,8 +241,12 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 
         @Override
         public void performAction(View view) {
-        	tfm.downloadNewTweets();
-        	adapter.notifyDataSetChanged();
+//        	tfm.downloadNewTweets();
+//        	adapter.notifyDataSetChanged();
+        	ConnManager.TimelineSelector ss = 
+        		mBloa.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING,
+        				tfm.getNewestSavedId(), null, null, null);
+        	new GetTimelineWithProgressTask().execute(ss);
         }
     }
 	

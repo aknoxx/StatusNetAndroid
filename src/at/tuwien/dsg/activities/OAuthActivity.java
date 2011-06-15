@@ -42,10 +42,10 @@ public class OAuthActivity extends Activity {
 
 	public static final String PREFS = "MyPrefsFile";
 
-	private OAuthConsumer mConsumer = null;
+	private static OAuthConsumer mConsumer = null;
 	private OAuthProvider mProvider = null;
 	
-	SharedPreferences mSettings;
+	static SharedPreferences mSettings;
 
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
