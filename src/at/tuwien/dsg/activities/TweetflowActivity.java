@@ -63,7 +63,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	private static final int SAVE_ID = Menu.FIRST;
 	private static final int LOAD_ID = Menu.FIRST + 1;
 	private static final int DELETE_ID = Menu.FIRST + 2;
-	private static final int FILTER_ID = Menu.FIRST + 3;	
+	private static final int RESET_ID = Menu.FIRST + 3;	
 	private static final int CLEAR_ID = Menu.FIRST + 4;
 	private static final int CONTEXT_DELETE_REQUEST_ID = Menu.FIRST + 5;
 	private static final int TEST_DATA_ID = Menu.FIRST + 6;
@@ -86,11 +86,13 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
     private ContentProviderClient variablesProvider;
 	
 	private ActionBar actionBar;
-	private ConnManager mBloa;
+	private ConnManager mConnManager;
 	
 	private SharedPreferences mSettings;
 	
 	private boolean loggedIn = false;
+	
+	private static String RESTORE_FILE = "restoreFile";
 	
 	private Menu menu;
 	
@@ -99,7 +101,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		super.onCreate(icicle);
 		Log.d(TAG, "onCreate()");
 		
-		mBloa = ConnManager.getInstance(getApplicationContext());
+		mConnManager = ConnManager.getInstance(getApplicationContext());
 
 		setContentView(R.layout.request_view);
 		actionBar = (ActionBar) findViewById(R.id.actionbar);
@@ -113,12 +115,11 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		
 		ListView listView = getListView();
 		
-		String FILENAME = "hello_file";
 		FileInputStream fis = null;
 		ObjectInputStream in = null;
 		DisplayData dd;		
 		try {
-			fis = openFileInput(FILENAME);
+			fis = openFileInput(RESTORE_FILE);
 			in = new ObjectInputStream(fis);
 			dd = (DisplayData) in.readObject();
 			in.close();
@@ -138,62 +139,28 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		registerForContextMenu(listView);
 		
 		mSettings = getSharedPreferences(OAuthActivity.PREFS, Context.MODE_PRIVATE);
-		
-		
-		
-//		if(!mBloa.isLoggedIn()) {
-//			if(mBloa.getKeysAvailable()) {
-//				new GetCredentialsTask().execute();
-//			}
-//			else {
-//				startActivity(new Intent(this, OAuthActivity.class));
-//			}
-//		}
-		
-//		if(!mBloa.isLoggedIn()) {
-//			// TODO
-//			mBloa.setLoggedIn(true);
-//			startActivity(new Intent(this, OAuthActivity.class));
-//		}
 	}
 	
 	@Override
 	public void onStart() {
 		super.onStart();
 		Log.d(TAG, "onStart()");
-		
-		
 	}
 	
 	@Override
 	public void onRestart() {
 		super.onRestart();
 		Log.d(TAG, "onRestart()");
-		
-		
-		
-//		if(loggedIn) {
-//			ConnManager.TimelineSelector ss = 
-//				mBloa.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING,
-//        				tfm.getNewestSavedId(), null, null, null);
-//			new GetTimelineWithProgressTask().execute(ss);
-//		}
-//		else {
-//			startActivity(new Intent(this, OAuthActivity.class));
-//		}
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
 		Log.d(TAG, "onResume()");
-		
-		
-		
-		
+
 		loggedIn = mSettings.getBoolean(ConnManager.LOGGEDIN, false);
 		if(!loggedIn) {
-			if(mBloa.getKeysAvailable()) {
+			if(mConnManager.getKeysAvailable()) {
 				new GetCredentialsTask().execute();
 			}
 			else {
@@ -202,8 +169,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		}
 		else {
 			ConnManager.TimelineSelector ss = 
-				mBloa.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING,
-        				tfm.getNewestSavedId(), null, null, null);
+				mConnManager.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING,
+        				tfm.getNewestReceivedId(), null, null, null);
 			new GetTimelineWithProgressTask().execute(ss);
 		}
 	}
@@ -212,13 +179,12 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	public void onPause() {
 		super.onPause();
 		Log.d(TAG, "onPause()");
-		String FILENAME = "hello_file";
 		FileOutputStream fos = null;
 		ObjectOutputStream out = null;
 		
 		try
 		{
-			fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+			fos = openFileOutput(RESTORE_FILE, Context.MODE_PRIVATE);
 			out = new ObjectOutputStream(fos);
 			out.writeObject(tfm.getDd());
 			out.close();
@@ -241,7 +207,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	
 	protected void onFinish() {
 		Log.d(TAG, "onFinish()");
-		mBloa.shutdownConnectionManager();
+		mConnManager.shutdownConnectionManager();
 	}
 	
 	//----------------------------
@@ -262,7 +228,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		
 		@Override
 		protected JSONObject doInBackground(Void... arg0) {
-			return mBloa.getCredentials();
+			return mConnManager.getCredentials();
 		}
 		
 		// This is in the UI thread, so we can mess with the UI
@@ -270,8 +236,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 			authDialog.dismiss();
 			if(jso != null) {
 				ConnManager.TimelineSelector ss = 
-					mBloa.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING,
-	        				tfm.getNewestSavedId(), null, null, null);
+					mConnManager.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING,
+	        				tfm.getNewestReceivedId(), null, null, null);
 				new GetTimelineWithProgressTask().execute(ss);
 			}
 		}
@@ -292,7 +258,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		
 		@Override
 		protected JSONArray doInBackground(ConnManager.TimelineSelector... params) {
-			return mBloa.getTimeline(params[0]);
+			return mConnManager.getTimeline(params[0]);
 		}
 		
 		// This is in the UI thread, so we can mess with the UI
@@ -301,8 +267,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 				try {
 					for(int i = array.length()-1; i >=0 ; i--) {
 						JSONObject status = array.getJSONObject(i);
-						ConnManager.UserStatus s = mBloa.new UserStatus(status);
-						tfm.addBloa(s);
+						ConnManager.UserStatus s = mConnManager.new UserStatus(status);
+						tfm.addUserStatus(s);
 					}
 					retrieveDialog.dismiss();
 					adapter.notifyDataSetChanged();
@@ -328,8 +294,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 //        	tfm.downloadNewTweets();
 //        	adapter.notifyDataSetChanged();
         	ConnManager.TimelineSelector ss = 
-        		mBloa.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING,
-        				tfm.getNewestSavedId(), null, null, null);
+        		mConnManager.new TimelineSelector(ConnManager.HOME_TIMELINE_URL_STRING,
+        				tfm.getNewestReceivedId(), null, null, null);
         	new GetTimelineWithProgressTask().execute(ss);
         }
     }
@@ -366,6 +332,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
         menu.add(0, CLEAR_ID, 2, "Clear request list");
         menu.add(0, DELETE_ID, 3, "Delete saved requests");
         menu.add(0, TEST_DATA_ID, 4, "Load test data");
+        menu.add(0, RESET_ID, 4, "Reset receiver");
         return true;
     }
 
@@ -414,6 +381,11 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
     		
     		tfm.setTestTFs();
     		adapter.notifyDataSetChanged();
+    		
+    		return true;
+    	case RESET_ID:
+    		
+    		tfm.resetIds();
     		
     		return true;
     	}

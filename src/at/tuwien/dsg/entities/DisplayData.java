@@ -12,6 +12,7 @@ public class DisplayData implements Serializable {
 	public ArrayList<Request> filteredRequests;
 	public Map<CharSequence, Boolean> displayFilter;
 	public Long newestSavedId = new Long(0);
+	public Long newestReceivedId = new Long(0);
 	
 	public ArrayList<Request> getRequests() {
 		return requests;
@@ -36,5 +37,11 @@ public class DisplayData implements Serializable {
 	}
 	public void setNewestSavedId(Long newestSavedId) {
 		this.newestSavedId = newestSavedId;
+	}
+	public Long getNewestReceivedId() {
+		return newestReceivedId;
+	}
+	public void setNewestReceivedId(Long newestReceivedId) {
+		this.newestReceivedId = newestReceivedId;
 	}
 }

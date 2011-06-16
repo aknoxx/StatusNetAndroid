@@ -1,18 +1,12 @@
 package at.tuwien.dsg.common;
 
-import java.io.FileOutputStream;
-import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-
-//import twitter4j.Status;
-//import twitter4j.User;
-
 import at.tuwien.dsg.common.Status;
 import at.tuwien.dsg.common.Request.Conditions;
 import at.tuwien.dsg.common.Request.HashTags;
@@ -25,25 +19,14 @@ import android.database.Cursor;
 import android.os.RemoteException;
 import at.tuwien.dsg.entities.Condition;
 import at.tuwien.dsg.entities.DisplayData;
-import at.tuwien.dsg.entities.Filter;
 import at.tuwien.dsg.entities.Request;
 import at.tuwien.dsg.entities.TweetflowPrimitive;
-import at.tuwien.dsg.util.TweetFilterParser;
 
 public class TweetFlowManager implements ITweetflowManager {
 
 	private RequestDbAdapter dbAdapter;
 	private static Context ctx;
 	private DisplayData dd;
-	
-//	private List<Filter> filters;
-//	private Pattern pattern;
-//	private Filter appliedFilter;
-//	private List<TweetflowPrimitive> primitives = null;
-	
-//	private ArrayList<Request> requests;
-//	private ArrayList<Request> filteredRequests;	
-//	private Long newestSavedId = new Long(0);
 	
 	public ArrayList<Request> getFilteredRequests() {
 		return dd.getFilteredRequests();
@@ -53,12 +36,8 @@ public class TweetFlowManager implements ITweetflowManager {
 		dd.setFilteredRequests(filteredRequests);
 	}
 
-//	private boolean useFilter = false;
-	
-//	private Map<CharSequence, Boolean> displayFilter;
 	private static final CharSequence[] qualifiers = { "SR", "SF", "TF", "LG", "VA",
 		"AccessVariable", "AccessServiceResult" };
-	
 	
 	private static TweetFlowManager instance = null;
 	
@@ -70,15 +49,6 @@ public class TweetFlowManager implements ITweetflowManager {
 		return instance;
 	}	
 	
-	public void persist() {
-		String FILENAME = "hello_file";
-
-		//ctx.getApplicationContext();
-		
-	}
-	
-	
-
 	public DisplayData getDd() {
 		return dd;
 	}
@@ -96,17 +66,16 @@ public class TweetFlowManager implements ITweetflowManager {
 			
 			dd.setRequests(new ArrayList<Request>());
 			dd.setFilteredRequests(new ArrayList<Request>());
-	//		primitives = new ArrayList<TweetflowPrimitive>();
-	//		filters = new ArrayList<Filter>();
-			TweetFilterParser parser = new TweetFilterParser();
-			//primitives = parser.parse(ctx.getResources()
-			//		.getXml(R.xml.tweetflow_primitives_filters));
 		}
 		else {
 			dd = displayData;
 			dbAdapter = new RequestDbAdapter(ctx);
 			dbAdapter.open();
 		}
+	}
+	
+	public Long getNewestReceivedId() {
+		return dd.getNewestReceivedId();
 	}
 	
 	public Long getNewestSavedId() {
@@ -137,9 +106,6 @@ public class TweetFlowManager implements ITweetflowManager {
 				success = false;
 			}
 		}
-		//if(success) {
-		//	refreshFilteredRequests();
-		//}
 		return success;
 	}
 	
@@ -161,23 +127,23 @@ public class TweetFlowManager implements ITweetflowManager {
 	}
 	
 	public ArrayList<Request> loadFilteredRequests() {
-		//loadRequests();
 		refreshFilteredRequests();
 		return dd.getFilteredRequests();
 	}
 	
 	public void deleteSavedRequests() {
 		dbAdapter.clearDb();
+		Iterator<Request> iter = dd.getRequests().iterator();
+		Request request = null;
+		while(iter.hasNext()){
+			request = (Request) iter.next();
+			if(request.isSaved()) {
+				iter.remove();
+			}
+		}
+		refreshFilteredRequests();
 	}
 	
-//	public List<TweetflowPrimitive> getPrimitives() {
-//		return primitives;
-//	}
-//
-//	public void setPrimitives(List<TweetflowPrimitive> primitives) {
-//		this.primitives = primitives;
-//	}
-
 	public Map<CharSequence, Boolean> getDisplayFilter() {
 		return dd.getDisplayFilter();
 	}
@@ -185,15 +151,6 @@ public class TweetFlowManager implements ITweetflowManager {
 	public void setDisplayFilter(Map<CharSequence, Boolean> displayFilter) {
 		dd.setDisplayFilter(displayFilter);
 	}
-	
-//	public void setFilter(Filter filter) {
-//		appliedFilter = filter;
-//		pattern = Pattern.compile(filter.getPattern());
-//	}
-//	
-//	public boolean match(String text) {
-//		return pattern.matcher(text.trim()).matches();
-//	}
 	
 	public void deleteRequest(int id) {
 		
@@ -288,25 +245,16 @@ public class TweetFlowManager implements ITweetflowManager {
 		return requests;
 	}
 	
-//	public ArrayList<Request> receiveTweetflows() {
-//		
-//		// TODO receive tweets with newer id's
-//		
-//		if(useFilter) {
-//			return filteredRequests;
-//		}
-//		return requests;
-//	}
-	
-	public void addBloa(ConnManager.UserStatus status) {
+	public void addUserStatus(ConnManager.UserStatus status) {
 		Request request;
-		if((request = extractRequestFromBloa(status)) != null) {
+		if((request = extractRequestFromUserStatus(status)) != null) {
 			dd.getRequests().add(0, request);
+			dd.setNewestReceivedId(status.getId());
 			refreshFilteredRequests();
 		}	
 	}
 	
-	public Request extractRequestFromBloa(ConnManager.UserStatus status) {
+	public Request extractRequestFromUserStatus(ConnManager.UserStatus status) {
 		try {
 			return new TweetflowPrimitive().extractRequestFromBloaStatus(status);
 		} catch (ParseException e) {
@@ -315,74 +263,14 @@ public class TweetFlowManager implements ITweetflowManager {
 	}
 	
 	public Request extractRequest(Status status) {
-		/*
-		 * Status s = new Status();
-		String u = s.getUser();
-		String text = s.getText();
-		Date date = s.getCreatedAt();
-		long id = s.getId();
-		 */
-		
-		/*Request request = null;
-		TweetflowPrimitive currentPrimitive = null;
-		for (TweetflowPrimitive primitive : primitives) {
-			if((request = primitive.extractRequest(status)) != null) {
-				currentPrimitive = primitive;
-				break;
-			}
-		}*/
 		
 		return new TweetflowPrimitive().extractRequest(status);
-		
-		/*
-		String user = null;
-		String requester = "noName";
-		if((user = status.getUser()) != null) {
-			requester = user.getName();
-		}
-		
-		
-		
-		String text = status.getText().trim();
-		
-		Request request = new Request();
-		request.setRequester(requester);
-		
-		// removes all spaces, tabs?
-		String[] words = text.split("\\s+");
-		request.setType(words[0]);
-		
-		String secondPart = words[1].substring(1).trim();
-		
-		String[] next = secondPart.split("\\?");
-		String[] command = next[0].split("\\.");
-		request.setVerb(command[0]);
-		request.setObject(command[1]);
-		
-		String[] time = next[1].split("\\&");
-		
-		String date = time[0].substring(5);
-		request.setDate(date);
-		
-		String duration = time[1].substring(9);
-		request.setDuration(duration);
-		
-		request.getHashTags().add(words[2]);
-		*/
-		//return request;		
 	}
 	
-//	public void addFilter(Filter filter) {
-//		filters.add(filter);
-//	}
-//	
-//	public void setFilters(List<Filter> filters) {
-//		this.filters = filters;
-//	}
-//
-//	public List<Filter> getFilters() {
-//		return filters;
-//	}
+	public void resetIds() {
+		dd.setNewestReceivedId(new Long(0));
+		dd.setNewestSavedId(new Long(0));
+	}
 
 	@Override
 	public void loadRequestsFromDb() {
@@ -493,13 +381,9 @@ public class TweetFlowManager implements ITweetflowManager {
 					cRequests.moveToNext();
 				}
 				cRequests.close();
-				//refreshFilteredRequests();
 			}
 		}
-		
-		
-		
-		dd.getRequests().addAll(dbAdapter.loadAllRequests());
+		//dd.getRequests().addAll(dbAdapter.loadAllRequests());
 		refreshFilteredRequests();		
 		
 		return true;
