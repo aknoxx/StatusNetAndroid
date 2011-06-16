@@ -44,14 +44,14 @@ public class ConnManager {
 	private static final String TAG = "ConnManager";
 	
 	
-	private Network currentNetwork; 
-	private Urls urls;
+	private static Network currentNetwork; 
+	private static Urls urls;
 	
 	ProgressDialog postDialog = null;
 	
 	private Context ctx;
 	
-	private OAuthConsumer mConsumer = null;
+	private static OAuthConsumer mConsumer = null;
 	
 	private String mToken;
 	private String mSecret;
@@ -68,42 +68,46 @@ public class ConnManager {
 	
 	private static ConnManager instance = null;
 	
-	public static ConnManager getInstance(Context ctx, Urls urls) {
+	public static ConnManager getInstance(Context ctx) {
 		if(instance == null) {
-			instance = new ConnManager(ctx, urls);
+			instance = new ConnManager(ctx);
 		}
 		return instance;
 	}
 	
-	private ConnManager(Context ctx, Urls urls) {
+	private ConnManager(Context ctx) {
 		this.ctx = ctx;
 		
-		if(urls == null) {
-			HttpParams parameters = new BasicHttpParams();
-			HttpProtocolParams.setVersion(parameters, HttpVersion.HTTP_1_1);
-			HttpProtocolParams.setContentCharset(parameters, HTTP.DEFAULT_CONTENT_CHARSET);
-			HttpProtocolParams.setUseExpectContinue(parameters, false);
-			HttpConnectionParams.setTcpNoDelay(parameters, true);
-			HttpConnectionParams.setSocketBufferSize(parameters, 8192);
-			
-			SchemeRegistry schReg = new SchemeRegistry();
-			schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-			ClientConnectionManager tsccm = new ThreadSafeClientConnManager(parameters, schReg);
-			mClient = new DefaultHttpClient(tsccm, parameters);
-			
-			mSettings = ctx.getSharedPreferences(OAuthActivity.PREFS, Context.MODE_PRIVATE);
-		}
-		else {
-			// TODO on load state
-		}
+		HttpParams parameters = new BasicHttpParams();
+		HttpProtocolParams.setVersion(parameters, HttpVersion.HTTP_1_1);
+		HttpProtocolParams.setContentCharset(parameters, HTTP.DEFAULT_CONTENT_CHARSET);
+		HttpProtocolParams.setUseExpectContinue(parameters, false);
+		HttpConnectionParams.setTcpNoDelay(parameters, true);
+		HttpConnectionParams.setSocketBufferSize(parameters, 8192);
+		
+		SchemeRegistry schReg = new SchemeRegistry();
+		schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+		ClientConnectionManager tsccm = new ThreadSafeClientConnManager(parameters, schReg);
+		mClient = new DefaultHttpClient(tsccm, parameters);
+		
+		mSettings = ctx.getSharedPreferences(OAuthActivity.PREFS, Context.MODE_PRIVATE);
+		
+		/**
+		 * Set saved state
+		 */
+//		if(currentNetwork != null) {
+//			this.currentNetwork = currentNetwork;
+//			this.urls = new Urls(currentNetwork.getRestBaseURL());
+//		}
 	}
 	
-	public void initWithNetwork(Network currentNetwork) {
-		urls = new Urls(currentNetwork.getRestBaseURL());
+	public static void restartConnectionManagerWithNewNetwork(Network network) {
+		urls = new Urls(network.getRestBaseURL());
 		mConsumer = new CommonsHttpOAuthConsumer(
-				currentNetwork.getConsumerKey(), 
-				currentNetwork.getConsumerSecret());
-		this.currentNetwork = currentNetwork;
+				network.getConsumerKey(), 
+				network.getConsumerSecret());
+		currentNetwork = network;
+		instance = null;
 	}
 	
 	public Network getCurrentNetwork() {

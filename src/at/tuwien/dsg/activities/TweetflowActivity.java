@@ -90,7 +90,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	
 	private boolean loggedIn = false;
 	
-	private static String RESTORE_FILE = "restoreFile";
+	private static final String TF_MANAGER_FILE = "TFManagerFile";
+	private static final String CONNECTION_MANAGER_FILE = "ConnectionManagerFile";
 	
 	private Menu menu;
 	
@@ -99,13 +100,6 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		super.onCreate(icicle);
 		Log.d(TAG, "onCreate()");
 		
-		mConnManager = ConnManager.getInstance(getApplicationContext(), null);
-		// TODO to be removed
-		mConnManager.initWithNetwork(new Network("status.net",
-				"http://192.168.0.10/statusnet/index.php/api/",
-				"d627a2882d5e28dc5835a92f1e46760e",
-				"84ee86ede714b965344186c5dd74d330"));
-
 		setContentView(R.layout.request_view);
 		actionBar = (ActionBar) findViewById(R.id.actionbar);
 		
@@ -122,7 +116,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		ObjectInputStream in = null;
 		DisplayData dd;		
 		try {
-			fis = openFileInput(RESTORE_FILE);
+			fis = openFileInput(TF_MANAGER_FILE);
 			in = new ObjectInputStream(fis);
 			dd = (DisplayData) in.readObject();
 			in.close();
@@ -130,6 +124,20 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 			dd = null;
 		}		
 		tfm = TweetFlowManager.getInstance(this, dd);
+		
+		Network n;
+		try {
+			fis = openFileInput(CONNECTION_MANAGER_FILE);
+			in = new ObjectInputStream(fis);
+			n = (Network) in.readObject();
+			in.close();
+		} catch (Exception e) {
+			n = null;
+		}	
+		if(n != null) {
+			ConnManager.restartConnectionManagerWithNewNetwork(n);
+		}		
+		mConnManager = ConnManager.getInstance(this);
 		
 		requestsProvider = getContentResolver().acquireContentProviderClient(Requests.CONTENT_URI);
 		hashTagsProvider = getContentResolver().acquireContentProviderClient(HashTags.CONTENT_URI);
@@ -167,12 +175,13 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 				new GetCredentialsTask().execute();
 			}
 			else {
-				startActivity(new Intent(this, OAuthActivity.class));
+				// sets the Network
+				startActivity(new Intent(this, LoginActivity.class));
 			}
 		}
 		else {
 			ConnManager.TimelineSelector ss = 
-				mConnManager.new TimelineSelector(ConnManager.getInstance(this, null).getUrls().getHomeTimelineUrlString(),
+				mConnManager.new TimelineSelector(ConnManager.getInstance(this).getUrls().getHomeTimelineUrlString(),
         				tfm.getNewestReceivedId(), null, null, null);
 			new GetTimelineWithProgressTask().execute(ss);
 		}
@@ -182,14 +191,21 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	public void onPause() {
 		super.onPause();
 		Log.d(TAG, "onPause()");
-		FileOutputStream fos = null;
-		ObjectOutputStream out = null;
 		
-		try
-		{
-			fos = openFileOutput(RESTORE_FILE, Context.MODE_PRIVATE);
+		FileOutputStream fos = null;
+		ObjectOutputStream out = null;		
+		try {
+			fos = openFileOutput(TF_MANAGER_FILE, Context.MODE_PRIVATE);
 			out = new ObjectOutputStream(fos);
 			out.writeObject(tfm.getDd());
+			out.close();
+		} catch(IOException ex) {
+			ex.printStackTrace();
+		}
+		try {
+			fos = openFileOutput(CONNECTION_MANAGER_FILE, Context.MODE_PRIVATE);
+			out = new ObjectOutputStream(fos);
+			out.writeObject(mConnManager.getCurrentNetwork());
 			out.close();
 		} catch(IOException ex) {
 			ex.printStackTrace();
@@ -239,7 +255,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 			authDialog.dismiss();
 			if(jso != null) {
 				ConnManager.TimelineSelector ss = 
-					mConnManager.new TimelineSelector(ConnManager.getInstance(getApplicationContext(), null).getUrls().getHomeTimelineUrlString(),
+					mConnManager.new TimelineSelector(ConnManager.getInstance(getApplicationContext()).getUrls().getHomeTimelineUrlString(),
 	        				tfm.getNewestReceivedId(), null, null, null);
 				new GetTimelineWithProgressTask().execute(ss);
 			}
@@ -297,7 +313,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 //        	tfm.downloadNewTweets();
 //        	adapter.notifyDataSetChanged();
         	ConnManager.TimelineSelector ss = 
-        		mConnManager.new TimelineSelector(ConnManager.getInstance(getApplicationContext(), null).getUrls().getHomeTimelineUrlString(),
+        		mConnManager.new TimelineSelector(ConnManager.getInstance(getApplicationContext()).getUrls().getHomeTimelineUrlString(),
         				tfm.getNewestReceivedId(), null, null, null);
         	new GetTimelineWithProgressTask().execute(ss);
         }

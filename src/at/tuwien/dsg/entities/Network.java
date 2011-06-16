@@ -1,7 +1,11 @@
 package at.tuwien.dsg.entities;
 
-public class Network {
+import java.io.Serializable;
 
+public class Network implements Serializable {
+
+	private static final long serialVersionUID = 3319261788597734731L;
+	
 	private String name;
 	private String restBaseURL;
 	private String consumerKey;

@@ -11,7 +11,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 import at.tuwien.dsg.R;
+import at.tuwien.dsg.common.ConnManager;
 
 public class InfoActivity extends Activity {
 
@@ -40,6 +42,15 @@ public class InfoActivity extends Activity {
             	redirectToLogin();
             }
 		});
+		
+		TextView tvUsername = (TextView) findViewById(R.id.tv_Username);
+		tvUsername.setText("Username");
+		
+		TextView tvNetwork = (TextView) findViewById(R.id.tv_Network);
+		tvNetwork.setText(ConnManager.getInstance(this).getCurrentNetwork().getName());
+		
+		TextView tvBaseUrl = (TextView) findViewById(R.id.tv_BaseUrl);
+		tvBaseUrl.setText(ConnManager.getInstance(this).getCurrentNetwork().getRestBaseURL());
 	}
 	
 	private void redirectToLogin() {

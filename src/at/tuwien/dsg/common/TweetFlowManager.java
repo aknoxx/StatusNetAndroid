@@ -19,6 +19,7 @@ import android.database.Cursor;
 import android.os.RemoteException;
 import at.tuwien.dsg.entities.Condition;
 import at.tuwien.dsg.entities.DisplayData;
+import at.tuwien.dsg.entities.Network;
 import at.tuwien.dsg.entities.Request;
 import at.tuwien.dsg.entities.TweetflowPrimitive;
 
@@ -142,6 +143,10 @@ public class TweetFlowManager implements ITweetflowManager {
 			}
 		}
 		refreshFilteredRequests();
+	}
+	
+	public List<Network> getAllNetworks() {
+		return dbAdapter.loadAllNetworks();
 	}
 	
 	public Map<CharSequence, Boolean> getDisplayFilter() {

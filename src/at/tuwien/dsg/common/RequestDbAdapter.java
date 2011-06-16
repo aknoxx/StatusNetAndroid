@@ -5,8 +5,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -20,6 +18,7 @@ import at.tuwien.dsg.common.Request.HashTags;
 import at.tuwien.dsg.common.Request.Requests;
 import at.tuwien.dsg.common.Request.Variables;
 import at.tuwien.dsg.entities.Condition;
+import at.tuwien.dsg.entities.Network;
 
 public class RequestDbAdapter {
 
@@ -32,6 +31,13 @@ public class RequestDbAdapter {
     public static final String HASHTAG_TABLE_NAME = "hashtag";
     public static final String CONDITION_TABLE_NAME = "condition";
     public static final String VARIABLE_TABLE_NAME = "variable";
+    
+    public static final String NETWORK_TABLE_NAME = "network";
+    public static final String _ID = "_id";
+    public static final String NAME = "name";
+    public static final String BASE_URL = "baseurl";
+    public static final String CONSUMER_KEY = "consumerkey";
+    public static final String CONSUMER_SECRET = "consumersecret";
     
     private static final String CREATE_TABLE_REQUEST =
 		"CREATE TABLE IF NOT EXISTS " + REQUEST_TABLE_NAME + " ("
@@ -70,6 +76,15 @@ public class RequestDbAdapter {
         + Variables.NAME + " TEXT,"
         + Variables.VALUE + " TEXT"
         + ");";
+    
+    private static final String CREATE_TABLE_NETWORK =
+		"CREATE TABLE IF NOT EXISTS " + NETWORK_TABLE_NAME + " ("
+        + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+        + NAME + " TEXT,"
+        + BASE_URL + " TEXT,"
+        + CONSUMER_KEY + " TEXT,"
+        + CONSUMER_SECRET + " TEXT"
+        + ");";
 	
 	private static class DatabaseHelper extends SQLiteOpenHelper {
 		DatabaseHelper(Context context) {
@@ -82,6 +97,29 @@ public class RequestDbAdapter {
 	        db.execSQL(CREATE_TABLE_HASHTAG);
 	        db.execSQL(CREATE_TABLE_CONDITION);
 	        db.execSQL(CREATE_TABLE_VARIABLE);
+	        
+	        db.execSQL(CREATE_TABLE_NETWORK);	        
+	        
+	        ContentValues values = new ContentValues();
+	        values.put(NAME, "status.net");
+	        values.put(BASE_URL, "http://192.168.0.10/statusnet/index.php/api/");
+	        values.put(CONSUMER_KEY, "d627a2882d5e28dc5835a92f1e46760e");
+	        values.put(CONSUMER_SECRET, "84ee86ede714b965344186c5dd74d330");
+	        db.insert(NETWORK_TABLE_NAME, null, values);
+	        
+	        values = new ContentValues();
+	        values.put(NAME, "identi.ca");
+	        values.put(BASE_URL, "http://identi.ca/api/");
+	        values.put(CONSUMER_KEY, "9a74ad0a805737218ba3da94a0236b53");
+	        values.put(CONSUMER_SECRET, "dc3f43cba9e36cb84725f0f8d654ed6e");
+	        db.insert(NETWORK_TABLE_NAME, null, values);
+	        
+	        values = new ContentValues();
+	        values.put(NAME, "twitter.com");
+	        values.put(BASE_URL, "http://twitter.com/");
+	        values.put(CONSUMER_KEY, "wfRZ0ziRJOS07W9KRmAtLQ");
+	        values.put(CONSUMER_SECRET, "PQzIniSepykkKpPQog2a7Se9I0mX0rLasPIgiygaPkE");
+	        db.insert(NETWORK_TABLE_NAME, null, values);
 	    }
 
 	    @Override
@@ -92,6 +130,7 @@ public class RequestDbAdapter {
 	        db.execSQL("DROP TABLE IF EXISTS " + HASHTAG_TABLE_NAME);
 	        db.execSQL("DROP TABLE IF EXISTS " + CONDITION_TABLE_NAME);
 	        db.execSQL("DROP TABLE IF EXISTS " + VARIABLE_TABLE_NAME);
+	        db.execSQL("DROP TABLE IF EXISTS " + CREATE_TABLE_NETWORK);
 	        onCreate(db);
 	    }
 	}
@@ -189,6 +228,47 @@ public class RequestDbAdapter {
         
         return requestId;
     }
+	
+	public List<Network> loadAllNetworks() {
+		String[] networkSelection = 
+			new String[] { 
+				NAME,
+				BASE_URL,
+				CONSUMER_KEY,
+				CONSUMER_SECRET
+			};
+		
+		Cursor c =  mDb.query(NETWORK_TABLE_NAME, 
+				networkSelection, null, null, null, null, null);
+
+		if(c != null) {
+			if(c.getCount() > 0) {
+			
+				List<Network> networks = new ArrayList<Network>();
+				
+				int nameColumn = c.getColumnIndex(NAME);
+				int baseUrlColumn = c.getColumnIndex(BASE_URL);
+				int consumerKeyColumn = c.getColumnIndex(CONSUMER_KEY);
+				int consumerSecretColumn = c.getColumnIndex(CONSUMER_SECRET);
+				
+				c.moveToFirst();
+				while (c.isAfterLast() == false) {
+					Network network = new Network(
+								c.getString(nameColumn),
+								c.getString(baseUrlColumn), 
+								c.getString(consumerKeyColumn), 
+								c.getString(consumerSecretColumn)
+								);
+					
+					networks.add(network);
+					c.moveToNext();					
+				}
+				c.close();
+				return networks;
+			}
+		}
+		return null;
+	}
 	
 	public List<at.tuwien.dsg.entities.Request> loadAllRequests() {
 		List<at.tuwien.dsg.entities.Request> requests = new ArrayList<at.tuwien.dsg.entities.Request>();
