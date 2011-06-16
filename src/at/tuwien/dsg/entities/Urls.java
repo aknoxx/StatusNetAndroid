@@ -2,7 +2,7 @@ package at.tuwien.dsg.entities;
 
 public class Urls {
 
-	private static String API_URL_STRING = "http://twitter.com/";
+	private static String API_URL_STRING;
 	
 	private static final String VERIFY_URL_STRING = 			"account/verify_credentials.json";
 	private static final String PUBLIC_TIMELINE_URL_STRING =	"statuses/public_timeline.json";
@@ -15,35 +15,36 @@ public class Urls {
 	private static final String ACCESS_TOKEN_URL = 	"oauth/access_token";
 	private static final String AUTHORIZE_URL = 	"oauth/authorize";
 	
-	public static void setApiUrlString(String apiUrlString) {
-		//API_URL_STRING = apiUrlString;
+
+	public Urls(String apiUrlString) {
+		API_URL_STRING = apiUrlString;
 	}
 	
-	public static String getVerifyUrlString() {
+	public String getVerifyUrlString() {
 		return API_URL_STRING + VERIFY_URL_STRING;
 	}	
-	public static String getPublicTimelineUrlString() {
+	public String getPublicTimelineUrlString() {
 		return API_URL_STRING + PUBLIC_TIMELINE_URL_STRING;
 	}	
-	public static String getUserTimelineUrlString() {
+	public String getUserTimelineUrlString() {
 		return API_URL_STRING + USER_TIMELINE_URL_STRING;
 	}	
-	public static String getHomeTimelineUrlString() {
+	public String getHomeTimelineUrlString() {
 		return API_URL_STRING + HOME_TIMELINE_URL_STRING;
 	}	
-	public static String getFriendsTimelineUrlString() {
+	public String getFriendsTimelineUrlString() {
 		return API_URL_STRING + FRIENDS_TIMELINE_URL_STRING;
 	}	
-	public static String getStatusesUrlString() {
+	public String getStatusesUrlString() {
 		return API_URL_STRING + STATUSES_URL_STRING;
 	}	
-	public static String getRequestTokenUrl() {
+	public String getRequestTokenUrl() {
 		return API_URL_STRING + REQUEST_TOKEN_URL;
 	}
-	public static String getAccessTokenUrl() {
+	public String getAccessTokenUrl() {
 		return API_URL_STRING + ACCESS_TOKEN_URL;
 	}
-	public static String getAuthorizeUrl() {
+	public String getAuthorizeUrl() {
 		return API_URL_STRING + AUTHORIZE_URL;
 	}
 }

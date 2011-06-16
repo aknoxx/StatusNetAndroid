@@ -35,53 +35,21 @@ import android.net.Uri;
 import android.text.format.Time;
 import android.util.Log;
 import at.tuwien.dsg.R;
-import at.tuwien.dsg.activities.Keys;
 import at.tuwien.dsg.activities.OAuthActivity;
+import at.tuwien.dsg.entities.Network;
+import at.tuwien.dsg.entities.Urls;
 
 
 public class ConnManager {
-	public static final String TAG = "ConnManager";
+	private static final String TAG = "ConnManager";
 	
-//	public static final String VERIFY_URL_STRING = "http://twitter.com/account/verify_credentials.json";
-//	public static final String PUBLIC_TIMELINE_URL_STRING = "http://twitter.com/statuses/public_timeline.json";
-//	public static final String USER_TIMELINE_URL_STRING = "http://twitter.com/statuses/user_timeline.json";
-//	public static final String HOME_TIMELINE_URL_STRING = "http://api.twitter.com/1/statuses/home_timeline.json";	
-//	public static final String FRIENDS_TIMELINE_URL_STRING = "http://api.twitter.com/1/statuses/friends_timeline.json";	
-//	public static final String STATUSES_URL_STRING = "http://twitter.com/statuses/update.json";	
-
-	/*
-	public static final String VERIFY_URL_STRING = "http://identi.ca/api/account/verify_credentials.json";
-	public static final String PUBLIC_TIMELINE_URL_STRING = "http://identi.ca/api/statuses/public_timeline.json";
-	public static final String USER_TIMELINE_URL_STRING = "http://identi.ca/api/statuses/user_timeline.json";
-	public static final String HOME_TIMELINE_URL_STRING = "http://identi.ca/api/statuses/home_timeline.json";	
-	public static final String FRIENDS_TIMELINE_URL_STRING = "http://identi.ca/api/statuses/friends_timeline.json";	
-	public static final String STATUSES_URL_STRING = "http://identi.ca/api/statuses/update.json";	
-	*/
 	
-	public static final String VERIFY_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/account/verify_credentials.json";
-	public static final String PUBLIC_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/public_timeline.json";
-	public static final String USER_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/user_timeline.json";
-	public static final String HOME_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/home_timeline.json";	
-	public static final String FRIENDS_TIMELINE_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/friends_timeline.json";	
-	public static final String STATUSES_URL_STRING = "http://192.168.0.10/statusnet/index.php/api/statuses/update.json";
+	private Network currentNetwork; 
+	private Urls urls;
 	
 	ProgressDialog postDialog = null;
-
-//	public static final String TWITTER_REQUEST_TOKEN_URL = "http://twitter.com/oauth/request_token";
-//	public static final String TWITTER_ACCESS_TOKEN_URL = "http://twitter.com/oauth/access_token";
-//	public static final String TWITTER_AUTHORIZE_URL = "http://twitter.com/oauth/authorize";
-	/*
-	public static final String TWITTER_REQUEST_TOKEN_URL = "https://identi.ca/api/oauth/request_token";
-	public static final String TWITTER_ACCESS_TOKEN_URL = "https://identi.ca/api/oauth/access_token";
-	public static final String TWITTER_AUTHORIZE_URL = "https://identi.ca/api/oauth/authorize";
-	*/
-	public static final String TWITTER_REQUEST_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/request_token";
-	public static final String TWITTER_ACCESS_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/access_token";
-	public static final String TWITTER_AUTHORIZE_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/authorize";
-
-	private Context ctx;
 	
-	public static final String LOGGEDIN = "loggedIn";
+	private Context ctx;
 	
 	private OAuthConsumer mConsumer = null;
 	
@@ -89,6 +57,8 @@ public class ConnManager {
 	private String mSecret;
 	
 	SharedPreferences mSettings;
+	
+	public static final String LOGGEDIN = "loggedIn";
 
 	LinkedList<UserStatus> mHomeStatus = new LinkedList<UserStatus>();
 	
@@ -98,32 +68,46 @@ public class ConnManager {
 	
 	private static ConnManager instance = null;
 	
-	public static ConnManager getInstance(Context ctx) {
+	public static ConnManager getInstance(Context ctx, Urls urls) {
 		if(instance == null) {
-			instance = new ConnManager(ctx);
+			instance = new ConnManager(ctx, urls);
 		}
 		return instance;
 	}
 	
-	private ConnManager(Context ctx) {
+	private ConnManager(Context ctx, Urls urls) {
 		this.ctx = ctx;
 		
-		HttpParams parameters = new BasicHttpParams();
-		HttpProtocolParams.setVersion(parameters, HttpVersion.HTTP_1_1);
-		HttpProtocolParams.setContentCharset(parameters, HTTP.DEFAULT_CONTENT_CHARSET);
-		HttpProtocolParams.setUseExpectContinue(parameters, false);
-		HttpConnectionParams.setTcpNoDelay(parameters, true);
-		HttpConnectionParams.setSocketBufferSize(parameters, 8192);
-		
-		SchemeRegistry schReg = new SchemeRegistry();
-		schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-		ClientConnectionManager tsccm = new ThreadSafeClientConnManager(parameters, schReg);
-		mClient = new DefaultHttpClient(tsccm, parameters);
-		
-		mSettings = ctx.getSharedPreferences(OAuthActivity.PREFS, Context.MODE_PRIVATE);
+		if(urls == null) {
+			HttpParams parameters = new BasicHttpParams();
+			HttpProtocolParams.setVersion(parameters, HttpVersion.HTTP_1_1);
+			HttpProtocolParams.setContentCharset(parameters, HTTP.DEFAULT_CONTENT_CHARSET);
+			HttpProtocolParams.setUseExpectContinue(parameters, false);
+			HttpConnectionParams.setTcpNoDelay(parameters, true);
+			HttpConnectionParams.setSocketBufferSize(parameters, 8192);
+			
+			SchemeRegistry schReg = new SchemeRegistry();
+			schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			ClientConnectionManager tsccm = new ThreadSafeClientConnManager(parameters, schReg);
+			mClient = new DefaultHttpClient(tsccm, parameters);
+			
+			mSettings = ctx.getSharedPreferences(OAuthActivity.PREFS, Context.MODE_PRIVATE);
+		}
+		else {
+			// TODO on load state
+		}
+	}
+	
+	public void initWithNetwork(Network currentNetwork) {
+		urls = new Urls(currentNetwork.getRestBaseURL());
 		mConsumer = new CommonsHttpOAuthConsumer(
-				Keys.TWITTER_CONSUMER_KEY, 
-				Keys.TWITTER_CONSUMER_SECRET);
+				currentNetwork.getConsumerKey(), 
+				currentNetwork.getConsumerSecret());
+		this.currentNetwork = currentNetwork;
+	}
+	
+	public Network getCurrentNetwork() {
+		return currentNetwork;
 	}
 	
 	public boolean getKeysAvailable() {
@@ -151,18 +135,6 @@ public class ConnManager {
 	private String getUserName(JSONObject credentials) {
 		return credentials.optString("name", ctx.getString(R.string.bad_value));
 	}
-	
-	
-
-	private String getLastTweet(JSONObject credentials) {
-		try {
-			JSONObject status = credentials.getJSONObject("status");
-			return getCurrentTweet(status);
-		} catch (JSONException e) {
-			e.printStackTrace();
-			return ctx.getString(R.string.tweet_error);
-		}
-	}
 
 	// These parameters are needed to talk to the messaging service
 	public HttpParams getParams() {
@@ -183,7 +155,7 @@ public class ConnManager {
 
 	public JSONObject getCredentials() {
 		JSONObject jso = null;
-    	HttpGet get = new HttpGet(VERIFY_URL_STRING);
+    	HttpGet get = new HttpGet(urls.getVerifyUrlString());
     	try {
 			mConsumer.sign(get);
 			String response = mClient.execute(get, new BasicResponseHandler());
@@ -250,6 +222,14 @@ public class ConnManager {
 
 	public boolean isLoggedIn() {
 		return loggedIn;
+	}
+
+	public void setUrls(Urls urls) {
+		this.urls = urls;
+	}
+
+	public Urls getUrls() {
+		return urls;
 	}
 
 	public class TimelineSelector extends Object {
