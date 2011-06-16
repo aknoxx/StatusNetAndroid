@@ -64,8 +64,8 @@ public class TestActivity extends ActionBarActivity {
         		regexLG);
         
         TweetFlowManager fm = TweetFlowManager.getInstance(this);
-        fm.addFilter(lg_Filter);
-        fm.setFilter(lg_Filter);
+//        fm.addFilter(lg_Filter);
+//        fm.setFilter(lg_Filter);
         
 		
 		if(lists != null) {
@@ -98,17 +98,17 @@ public class TestActivity extends ActionBarActivity {
 			ArrayList<Status> userTimeline = new ArrayList<Status>();
 			int requestsFound = 0;
 			for (Status status : statuses) {
-				if(fm.match(status.getText())) {
-					userTimeline.add(status);
-					requestsFound++;
-					
-					Request req = null; //fm.extractRequest(status);
-					tv = new TextView(this);
-				    tv.setText(req.getQualifier() + " " + req.getCreatedAt() + " " + //req.getDuration() +
-				    		" " + req.getOperation() + req.getService() + req.getRequester() + " " + 
-				    		req.getHashTags().get(0));
-					container.addView(tv);
-				}
+//				if(fm.match(status.getText())) {
+//					userTimeline.add(status);
+//					requestsFound++;
+//					
+//					Request req = null; //fm.extractRequest(status);
+//					tv = new TextView(this);
+//				    tv.setText(req.getQualifier() + " " + req.getCreatedAt() + " " + //req.getDuration() +
+//				    		" " + req.getOperation() + req.getService() + req.getRequester() + " " + 
+//				    		req.getHashTags().get(0));
+//					container.addView(tv);
+//				}
 			}		
 			
 			

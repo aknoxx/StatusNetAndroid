@@ -238,8 +238,8 @@ public class HomeActivity extends ActionBarActivity {
         		regexLG);
         
         TweetFlowManager fm = TweetFlowManager.getInstance(this);
-        fm.addFilter(lg_Filter);
-        fm.setFilter(lg_Filter);
+//        fm.addFilter(lg_Filter);
+//        fm.setFilter(lg_Filter);
         
         // SR proofread.Blog http://www.ikangai.com #blog 
         //String regexSR = "SR\\s+\\w+\\.\\w+\\?date=\\d{2}\\.\\d{2}\\.\\d{4}&duration=\\d{4}\\s+#\\w+";

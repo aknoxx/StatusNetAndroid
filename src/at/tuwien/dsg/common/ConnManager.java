@@ -81,10 +81,12 @@ public class ConnManager {
 
 	private Context ctx;
 	
+	public static final String LOGGEDIN = "loggedIn";
+	
 	private OAuthConsumer mConsumer = null;
 	
-	public String mToken;
-	public String mSecret;
+	private String mToken;
+	private String mSecret;
 	
 	SharedPreferences mSettings;
 
@@ -129,7 +131,7 @@ public class ConnManager {
 		if(mSettings.contains(OAuthActivity.USER_TOKEN) && mSettings.contains(OAuthActivity.USER_SECRET)) {
 			mToken = mSettings.getString(OAuthActivity.USER_TOKEN, null);
 			mSecret = mSettings.getString(OAuthActivity.USER_SECRET, null);
-			if(!(mToken == null || mSecret == null)) {
+			if(mToken != null && mSecret != null) {
 				mConsumer.setTokenWithSecret(mToken, mSecret);
 				return true;
 			}
@@ -149,6 +151,8 @@ public class ConnManager {
 	private String getUserName(JSONObject credentials) {
 		return credentials.optString("name", ctx.getString(R.string.bad_value));
 	}
+	
+	
 
 	private String getLastTweet(JSONObject credentials) {
 		try {
@@ -169,7 +173,14 @@ public class ConnManager {
 		return params;
 	}
 	
-	
+	public String getmToken() {
+		return mToken;
+	}
+
+	public String getmSecret() {
+		return mSecret;
+	}
+
 	public JSONObject getCredentials() {
 		JSONObject jso = null;
     	HttpGet get = new HttpGet(VERIFY_URL_STRING);
@@ -191,6 +202,8 @@ public class ConnManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		SharedPreferences.Editor editor = mSettings.edit();
+		editor.putBoolean(LOGGEDIN, true);
 		return jso;
 	}
 	

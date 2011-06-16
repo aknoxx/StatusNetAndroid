@@ -1,5 +1,6 @@
 package at.tuwien.dsg.common;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,14 +28,16 @@ import at.tuwien.dsg.entities.Request;
 import at.tuwien.dsg.entities.TweetflowPrimitive;
 import at.tuwien.dsg.util.TweetFilterParser;
 
-public class TweetFlowManager implements ITweetflowManager {
+public class TweetFlowManager implements ITweetflowManager, Serializable {
+
+	private static final long serialVersionUID = 2185729194170381113L;
 
 	private RequestDbAdapter dbAdapter;
 	
-	private List<Filter> filters;
-	private Pattern pattern;
-	private Filter appliedFilter;
-	private List<TweetflowPrimitive> primitives = null;
+//	private List<Filter> filters;
+//	private Pattern pattern;
+//	private Filter appliedFilter;
+//	private List<TweetflowPrimitive> primitives = null;
 	private ArrayList<Request> requests;
 	private ArrayList<Request> filteredRequests;
 	
@@ -75,8 +78,8 @@ public class TweetFlowManager implements ITweetflowManager {
 		
 		requests = new ArrayList<Request>();
 		filteredRequests = new ArrayList<Request>();
-		primitives = new ArrayList<TweetflowPrimitive>();
-		filters = new ArrayList<Filter>();
+//		primitives = new ArrayList<TweetflowPrimitive>();
+//		filters = new ArrayList<Filter>();
 		TweetFilterParser parser = new TweetFilterParser();
 		//primitives = parser.parse(ctx.getResources()
 		//		.getXml(R.xml.tweetflow_primitives_filters));
@@ -143,13 +146,13 @@ public class TweetFlowManager implements ITweetflowManager {
 		dbAdapter.clearDb();
 	}
 	
-	public List<TweetflowPrimitive> getPrimitives() {
-		return primitives;
-	}
-
-	public void setPrimitives(List<TweetflowPrimitive> primitives) {
-		this.primitives = primitives;
-	}
+//	public List<TweetflowPrimitive> getPrimitives() {
+//		return primitives;
+//	}
+//
+//	public void setPrimitives(List<TweetflowPrimitive> primitives) {
+//		this.primitives = primitives;
+//	}
 
 	public Map<CharSequence, Boolean> getDisplayFilter() {
 		return displayFilter;
@@ -159,14 +162,14 @@ public class TweetFlowManager implements ITweetflowManager {
 		this.displayFilter = displayFilter;
 	}
 	
-	public void setFilter(Filter filter) {
-		appliedFilter = filter;
-		pattern = Pattern.compile(filter.getPattern());
-	}
-	
-	public boolean match(String text) {
-		return pattern.matcher(text.trim()).matches();
-	}
+//	public void setFilter(Filter filter) {
+//		appliedFilter = filter;
+//		pattern = Pattern.compile(filter.getPattern());
+//	}
+//	
+//	public boolean match(String text) {
+//		return pattern.matcher(text.trim()).matches();
+//	}
 	
 	public void deleteRequest(int id) {
 		
@@ -345,17 +348,17 @@ public class TweetFlowManager implements ITweetflowManager {
 		//return request;		
 	}
 	
-	public void addFilter(Filter filter) {
-		filters.add(filter);
-	}
-	
-	public void setFilters(List<Filter> filters) {
-		this.filters = filters;
-	}
-
-	public List<Filter> getFilters() {
-		return filters;
-	}
+//	public void addFilter(Filter filter) {
+//		filters.add(filter);
+//	}
+//	
+//	public void setFilters(List<Filter> filters) {
+//		this.filters = filters;
+//	}
+//
+//	public List<Filter> getFilters() {
+//		return filters;
+//	}
 
 	@Override
 	public void loadRequestsFromDb() {
