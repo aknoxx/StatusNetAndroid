@@ -1,5 +1,6 @@
 package at.tuwien.dsg.common;
 
+import java.io.FileOutputStream;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -23,90 +24,113 @@ import android.content.Context;
 import android.database.Cursor;
 import android.os.RemoteException;
 import at.tuwien.dsg.entities.Condition;
+import at.tuwien.dsg.entities.DisplayData;
 import at.tuwien.dsg.entities.Filter;
 import at.tuwien.dsg.entities.Request;
 import at.tuwien.dsg.entities.TweetflowPrimitive;
 import at.tuwien.dsg.util.TweetFilterParser;
 
-public class TweetFlowManager implements ITweetflowManager, Serializable {
-
-	private static final long serialVersionUID = 2185729194170381113L;
+public class TweetFlowManager implements ITweetflowManager {
 
 	private RequestDbAdapter dbAdapter;
+	private static Context ctx;
+	private DisplayData dd;
 	
 //	private List<Filter> filters;
 //	private Pattern pattern;
 //	private Filter appliedFilter;
 //	private List<TweetflowPrimitive> primitives = null;
-	private ArrayList<Request> requests;
-	private ArrayList<Request> filteredRequests;
 	
-	private Long newestSavedId = new Long(0);
+//	private ArrayList<Request> requests;
+//	private ArrayList<Request> filteredRequests;	
+//	private Long newestSavedId = new Long(0);
 	
 	public ArrayList<Request> getFilteredRequests() {
-		return filteredRequests;
+		return dd.getFilteredRequests();
 	}
 
 	public void setFilteredRequests(ArrayList<Request> filteredRequests) {
-		this.filteredRequests = filteredRequests;
+		dd.setFilteredRequests(filteredRequests);
 	}
 
-	private boolean useFilter = false;
+//	private boolean useFilter = false;
 	
-	private Map<CharSequence, Boolean> displayFilter;
+//	private Map<CharSequence, Boolean> displayFilter;
 	private static final CharSequence[] qualifiers = { "SR", "SF", "TF", "LG", "VA",
 		"AccessVariable", "AccessServiceResult" };
 	
 	
 	private static TweetFlowManager instance = null;
 	
-	public static TweetFlowManager getInstance(Context ctx) {
+	public static TweetFlowManager getInstance(Context context, DisplayData displayData) {
 		if(instance == null) {
-			instance = new TweetFlowManager(ctx);
+			ctx = context;
+			instance = new TweetFlowManager(ctx, displayData);
 		}
 		return instance;
 	}	
+	
+	public void persist() {
+		String FILENAME = "hello_file";
 
-	private TweetFlowManager(Context ctx) {
-		displayFilter = new HashMap<CharSequence, Boolean>();
-		for (CharSequence qualifier : qualifiers) {
-			displayFilter.put(qualifier, new Boolean(true));
+		//ctx.getApplicationContext();
+		
+	}
+	
+	
+
+	public DisplayData getDd() {
+		return dd;
+	}
+
+	private TweetFlowManager(Context ctx, DisplayData displayData) {
+		if(displayData == null) {
+			dd = new DisplayData();
+			dd.setDisplayFilter(new HashMap<CharSequence, Boolean>());
+			for (CharSequence qualifier : qualifiers) {
+				dd.getDisplayFilter().put(qualifier, new Boolean(true));
+			}
+			
+			dbAdapter = new RequestDbAdapter(ctx);
+			dbAdapter.open();
+			
+			dd.setRequests(new ArrayList<Request>());
+			dd.setFilteredRequests(new ArrayList<Request>());
+	//		primitives = new ArrayList<TweetflowPrimitive>();
+	//		filters = new ArrayList<Filter>();
+			TweetFilterParser parser = new TweetFilterParser();
+			//primitives = parser.parse(ctx.getResources()
+			//		.getXml(R.xml.tweetflow_primitives_filters));
 		}
-		
-		dbAdapter = new RequestDbAdapter(ctx);
-		dbAdapter.open();
-		
-		requests = new ArrayList<Request>();
-		filteredRequests = new ArrayList<Request>();
-//		primitives = new ArrayList<TweetflowPrimitive>();
-//		filters = new ArrayList<Filter>();
-		TweetFilterParser parser = new TweetFilterParser();
-		//primitives = parser.parse(ctx.getResources()
-		//		.getXml(R.xml.tweetflow_primitives_filters));
+		else {
+			dd = displayData;
+			dbAdapter = new RequestDbAdapter(ctx);
+			dbAdapter.open();
+		}
 	}
 	
 	public Long getNewestSavedId() {
-		return newestSavedId;
+		return dd.getNewestSavedId();
 	}
 
 	public void downloadNewTweets() {
 		
-		requests.addAll(0, testDownloadData());
+		dd.getRequests().addAll(0, testDownloadData());
 		refreshFilteredRequests();
 	}
 	
 	public void clearRequestList() {
-		requests.clear();
-		filteredRequests.clear();
+		dd.getRequests().clear();
+		dd.getFilteredRequests().clear();
 	}
 	
 	public boolean saveRequests() {
 		boolean success = true;
-		for (Request request : filteredRequests) {
+		for (Request request : dd.getFilteredRequests()) {
 			if(dbAdapter.saveRequest(request) > 0) {
 				request.setSaved(true);
-				if(request.getTweetId() > newestSavedId) {
-					newestSavedId = request.getTweetId();
+				if(request.getTweetId() > dd.getNewestSavedId()) {
+					dd.setNewestSavedId(request.getTweetId());
 				}
 			}			
 			else {
@@ -120,17 +144,17 @@ public class TweetFlowManager implements ITweetflowManager, Serializable {
 	}
 	
 	public ArrayList<Request> loadRequests() {
-		requests.clear();
-		requests.addAll(dbAdapter.loadAllRequests());
-		return requests;
+		dd.getRequests().clear();
+		dd.getRequests().addAll(dbAdapter.loadAllRequests());
+		return dd.getRequests();
 	}
 	
 	private void refreshFilteredRequests() {
-		filteredRequests.clear();
-		for (Request req : requests) {
-			if(displayFilter.containsKey(req.getQualifier())) {
-				if(displayFilter.get(req.getQualifier())) {
-					filteredRequests.add(req);
+		dd.getFilteredRequests().clear();
+		for (Request req : dd.getRequests()) {
+			if(dd.getDisplayFilter().containsKey(req.getQualifier())) {
+				if(dd.getDisplayFilter().get(req.getQualifier())) {
+					dd.getFilteredRequests().add(req);
 				}
 			}
 		}
@@ -139,7 +163,7 @@ public class TweetFlowManager implements ITweetflowManager, Serializable {
 	public ArrayList<Request> loadFilteredRequests() {
 		//loadRequests();
 		refreshFilteredRequests();
-		return filteredRequests;
+		return dd.getFilteredRequests();
 	}
 	
 	public void deleteSavedRequests() {
@@ -155,11 +179,11 @@ public class TweetFlowManager implements ITweetflowManager, Serializable {
 //	}
 
 	public Map<CharSequence, Boolean> getDisplayFilter() {
-		return displayFilter;
+		return dd.getDisplayFilter();
 	}
 
 	public void setDisplayFilter(Map<CharSequence, Boolean> displayFilter) {
-		this.displayFilter = displayFilter;
+		dd.setDisplayFilter(displayFilter);
 	}
 	
 //	public void setFilter(Filter filter) {
@@ -173,21 +197,21 @@ public class TweetFlowManager implements ITweetflowManager, Serializable {
 	
 	public void deleteRequest(int id) {
 		
-		for (int i = 0; i < filteredRequests.size(); i++) {
-			if(requests.get(id).getTweetId() == filteredRequests.get(i).getTweetId()) {
-				filteredRequests.remove(i);
+		for (int i = 0; i < dd.getFilteredRequests().size(); i++) {
+			if(dd.getRequests().get(id).getTweetId() == dd.getFilteredRequests().get(i).getTweetId()) {
+				dd.getFilteredRequests().remove(i);
 				break;
 			}
 		}
 
-		if(requests.get(id).isSaved()) {
-			dbAdapter.deleteRequest(requests.get(id).getDbId());
+		if(dd.getRequests().get(id).isSaved()) {
+			dbAdapter.deleteRequest(dd.getRequests().get(id).getDbId());
 		}
-		requests.remove(id);
+		dd.getRequests().remove(id);
 	}
 	
 	public void setTestTFs() {
-		requests.clear();
+		dd.getRequests().clear();
 		
 		long time = System.currentTimeMillis();
 		
@@ -198,15 +222,15 @@ public class TweetFlowManager implements ITweetflowManager, Serializable {
 		text = "SR @johannes2112 recommend.Restaurant location=Vienna,1020&date=today&time=20:00 " +
 		 "[@ikangai.availability?=true]";
 		status = new Status(new String("User1"), text, new Date(time + 120000), (long) 4);
-		requests.add(extractRequest(status));
+		dd.getRequests().add(extractRequest(status));
 		
 		text = "SR @aknoxx proofread.WebPage http://www.ikangai.com/blog/tweetflows-specification-version-1-0";
 		status = new Status(new String("User1"), text, new Date(time + 180000), (long) 3);
-		requests.add(extractRequest(status));
+		dd.getRequests().add(extractRequest(status));
 		
 		text = "SF @ikangai didProofread.Blogentry http://www.ikangai.com/blog #tweetflows #specification";
 		status = new Status(new String("User1"), text, new Date(time + 240000), (long) 2);
-		requests.add(extractRequest(status));
+		dd.getRequests().add(extractRequest(status));
 		
 		refreshFilteredRequests();
 	}
@@ -264,20 +288,20 @@ public class TweetFlowManager implements ITweetflowManager, Serializable {
 		return requests;
 	}
 	
-	public ArrayList<Request> receiveTweetflows() {
-		
-		// TODO receive tweets with newer id's
-		
-		if(useFilter) {
-			return filteredRequests;
-		}
-		return requests;
-	}
+//	public ArrayList<Request> receiveTweetflows() {
+//		
+//		// TODO receive tweets with newer id's
+//		
+//		if(useFilter) {
+//			return filteredRequests;
+//		}
+//		return requests;
+//	}
 	
 	public void addBloa(ConnManager.UserStatus status) {
 		Request request;
 		if((request = extractRequestFromBloa(status)) != null) {
-			requests.add(0, request);
+			dd.getRequests().add(0, request);
 			refreshFilteredRequests();
 		}	
 	}
@@ -362,7 +386,7 @@ public class TweetFlowManager implements ITweetflowManager, Serializable {
 
 	@Override
 	public void loadRequestsFromDb() {
-		requests.addAll(dbAdapter.loadAllRequests());
+		dd.getRequests().addAll(dbAdapter.loadAllRequests());
 		refreshFilteredRequests();		
 	}
 	
@@ -465,7 +489,7 @@ public class TweetFlowManager implements ITweetflowManager, Serializable {
 						}
 					}
 					
-					requests.add(r);
+					dd.getRequests().add(r);
 					cRequests.moveToNext();
 				}
 				cRequests.close();
@@ -475,7 +499,7 @@ public class TweetFlowManager implements ITweetflowManager, Serializable {
 		
 		
 		
-		requests.addAll(dbAdapter.loadAllRequests());
+		dd.getRequests().addAll(dbAdapter.loadAllRequests());
 		refreshFilteredRequests();		
 		
 		return true;

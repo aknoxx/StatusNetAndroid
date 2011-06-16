@@ -1,13 +1,16 @@
 package at.tuwien.dsg.entities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Request {
+public class Request implements Serializable {
 
+	private static final long serialVersionUID = -8448411208707721327L;
+	
 	private String qualifier;	
 	private String addressedUser;
 	private String operation;

@@ -1,5 +1,12 @@
 package at.tuwien.dsg.activities;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -45,6 +52,7 @@ import at.tuwien.dsg.common.Request.HashTags;
 import at.tuwien.dsg.common.Request.Requests;
 import at.tuwien.dsg.common.Request.Variables;
 import at.tuwien.dsg.common.TweetFlowManager;
+import at.tuwien.dsg.entities.DisplayData;
 import at.tuwien.dsg.entities.Request;
 
 public class TweetflowActivity extends ListActivity {// extends ActionBarActivity {
@@ -104,7 +112,20 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		actionBar.addAction(infoIntentAction);
 		
 		ListView listView = getListView();
-		tfm = TweetFlowManager.getInstance(this);
+		
+		String FILENAME = "hello_file";
+		FileInputStream fis = null;
+		ObjectInputStream in = null;
+		DisplayData dd;		
+		try {
+			fis = openFileInput(FILENAME);
+			in = new ObjectInputStream(fis);
+			dd = (DisplayData) in.readObject();
+			in.close();
+		} catch (Exception e) {
+			dd = null;
+		}		
+		tfm = TweetFlowManager.getInstance(this, dd);
 		
 		requestsProvider = getContentResolver().acquireContentProviderClient(Requests.CONTENT_URI);
 		hashTagsProvider = getContentResolver().acquireContentProviderClient(HashTags.CONTENT_URI);
@@ -167,6 +188,9 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		super.onResume();
 		Log.d(TAG, "onResume()");
 		
+		
+		
+		
 		loggedIn = mSettings.getBoolean(ConnManager.LOGGEDIN, false);
 		if(!loggedIn) {
 			if(mBloa.getKeysAvailable()) {
@@ -188,6 +212,19 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	public void onPause() {
 		super.onPause();
 		Log.d(TAG, "onPause()");
+		String FILENAME = "hello_file";
+		FileOutputStream fos = null;
+		ObjectOutputStream out = null;
+		
+		try
+		{
+			fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+			out = new ObjectOutputStream(fos);
+			out.writeObject(tfm.getDd());
+			out.close();
+		} catch(IOException ex) {
+			ex.printStackTrace();
+		}	
 	}
 	
 	@Override
