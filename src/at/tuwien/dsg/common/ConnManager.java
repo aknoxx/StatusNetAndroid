@@ -64,8 +64,6 @@ public class ConnManager {
 	
 	HttpClient mClient;
 	
-	private boolean loggedIn = false;
-	
 	private static ConnManager instance = null;
 	
 	public static ConnManager getInstance(Context ctx) {
@@ -139,6 +137,16 @@ public class ConnManager {
 	private String getUserName(JSONObject credentials) {
 		return credentials.optString("name", ctx.getString(R.string.bad_value));
 	}
+	
+	private String getLastTweet(JSONObject credentials) {
+		try {
+			JSONObject status = credentials.getJSONObject("status");
+			return getCurrentTweet(status);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return ctx.getString(R.string.tweet_error);
+		}
+	}
 
 	// These parameters are needed to talk to the messaging service
 	public HttpParams getParams() {
@@ -178,6 +186,7 @@ public class ConnManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		SharedPreferences.Editor editor = mSettings.edit();
 		editor.putBoolean(LOGGEDIN, true);
 		return jso;
@@ -218,18 +227,6 @@ public class ConnManager {
 			e.printStackTrace();
 		}
 		return array;
-	}	
-	
-	public void setLoggedIn(boolean loggedIn) {
-		this.loggedIn = loggedIn;
-	}
-
-	public boolean isLoggedIn() {
-		return loggedIn;
-	}
-
-	public void setUrls(Urls urls) {
-		this.urls = urls;
 	}
 
 	public Urls getUrls() {
@@ -287,5 +284,10 @@ public class ConnManager {
 			Time ret1 = new Time();
 			return mStatus.optString("created_at", ctx.getString(R.string.bad_value));
 		}
+	}
+
+	public void logout() {
+		SharedPreferences.Editor editor = mSettings.edit();
+		editor.putBoolean(LOGGEDIN, false);
 	}
 }

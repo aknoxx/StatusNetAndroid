@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import at.tuwien.dsg.common.ConnManager;
 
 public class OAuthActivity extends Activity {
 	private static final String TAG = "OAuthActivity";
@@ -25,18 +26,6 @@ public class OAuthActivity extends Activity {
 	public static final String USER_SECRET = "user_secret";
 	public static final String REQUEST_TOKEN = "request_token";
 	public static final String REQUEST_SECRET = "request_secret";
-
-//	public static final String TWITTER_REQUEST_TOKEN_URL = "http://twitter.com/oauth/request_token";
-//	public static final String TWITTER_ACCESS_TOKEN_URL = "http://twitter.com/oauth/access_token";
-//	public static final String TWITTER_AUTHORIZE_URL = "http://twitter.com/oauth/authorize";	
-	
-//	public static final String TWITTER_REQUEST_TOKEN_URL = "https://identi.ca/api/oauth/request_token";
-//	public static final String TWITTER_ACCESS_TOKEN_URL = "https://identi.ca/api/oauth/access_token";
-//	public static final String TWITTER_AUTHORIZE_URL = "https://identi.ca/api/oauth/authorize";
-	
-	public static final String TWITTER_REQUEST_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/request_token";
-	public static final String TWITTER_ACCESS_TOKEN_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/access_token";
-	public static final String TWITTER_AUTHORIZE_URL = "http://192.168.0.10/statusnet/index.php/api/oauth/authorize";
 	
 	private static final Uri CALLBACK_URI = Uri.parse("status-net-android://oauth");
 
@@ -52,13 +41,13 @@ public class OAuthActivity extends Activity {
 	
 		// We don't need to worry about any saved states: we can reconstruct the state
 		mConsumer = new CommonsHttpOAuthConsumer(
-				Keys.TWITTER_CONSUMER_KEY, 
-				Keys.TWITTER_CONSUMER_SECRET);
+				ConnManager.getInstance(this).getCurrentNetwork().getConsumerKey(),
+				ConnManager.getInstance(this).getCurrentNetwork().getConsumerSecret());
 		
 		mProvider = new CommonsHttpOAuthProvider (
-				TWITTER_REQUEST_TOKEN_URL, 
-				TWITTER_ACCESS_TOKEN_URL,
-				TWITTER_AUTHORIZE_URL);
+				ConnManager.getInstance(this).getUrls().getRequestTokenUrl(),
+				ConnManager.getInstance(this).getUrls().getAccessTokenUrl(),
+				ConnManager.getInstance(this).getUrls().getAuthorizeUrl());
 		
 		// It turns out this was the missing thing to making standard Activity launch mode work
 		mProvider.setOAuth10a(true);

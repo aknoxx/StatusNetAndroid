@@ -182,7 +182,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		else {
 			ConnManager.TimelineSelector ss = 
 				mConnManager.new TimelineSelector(ConnManager.getInstance(this).getUrls().getHomeTimelineUrlString(),
-        				tfm.getNewestReceivedId(), null, null, null);
+        				//tfm.getNewestReceivedId(), null, null, null);
+						null, null, null, null);
 			new GetTimelineWithProgressTask().execute(ss);
 		}
 	}
@@ -256,7 +257,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 			if(jso != null) {
 				ConnManager.TimelineSelector ss = 
 					mConnManager.new TimelineSelector(ConnManager.getInstance(getApplicationContext()).getUrls().getHomeTimelineUrlString(),
-	        				tfm.getNewestReceivedId(), null, null, null);
+	        				//tfm.getNewestReceivedId(), null, null, null);
+							null, null, null, null);
 				new GetTimelineWithProgressTask().execute(ss);
 			}
 		}

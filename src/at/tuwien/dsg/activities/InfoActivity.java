@@ -39,17 +39,18 @@ public class InfoActivity extends Activity {
             	
             	// TODO: do logout stuff
             	
+            	ConnManager.getInstance(getApplicationContext()).logout();
+            	
             	redirectToLogin();
             }
 		});
 		
 		TextView tvUsername = (TextView) findViewById(R.id.tv_Username);
-		tvUsername.setText("Username");
-		
 		TextView tvNetwork = (TextView) findViewById(R.id.tv_Network);
-		tvNetwork.setText(ConnManager.getInstance(this).getCurrentNetwork().getName());
-		
 		TextView tvBaseUrl = (TextView) findViewById(R.id.tv_BaseUrl);
+		
+		tvUsername.setText("Username");
+		tvNetwork.setText(ConnManager.getInstance(this).getCurrentNetwork().getName());
 		tvBaseUrl.setText(ConnManager.getInstance(this).getCurrentNetwork().getRestBaseURL());
 	}
 	
