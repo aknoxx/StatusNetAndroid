@@ -59,25 +59,25 @@ public class RequestProvider extends ContentProvider {
         
 
         switch (sUriMatcher.match(uri)) {
-        case REQUESTS:
-        	qb.setTables(RequestDbAdapter.REQUEST_TABLE_NAME);
-            qb.setProjectionMap(sRequestsProjectionMap);
-            break;
-        case HASHTAGS:
-        	qb.setTables(RequestDbAdapter.HASHTAG_TABLE_NAME);
-            qb.setProjectionMap(sHashTagsProjectionMap);
-            break;
-        case CONDITIONS:
-        	qb.setTables(RequestDbAdapter.CONDITION_TABLE_NAME);
-            qb.setProjectionMap(sConditionsProjectionMap);
-            break;
-        case VARIABLES:
-        	qb.setTables(RequestDbAdapter.VARIABLE_TABLE_NAME);
-            qb.setProjectionMap(sVariablesProjectionMap);
-            break;
-
-        default:
-            throw new IllegalArgumentException("Unknown URI " + uri);
+	        case REQUESTS:
+	        	qb.setTables(RequestDbAdapter.REQUEST_TABLE_NAME);
+	            qb.setProjectionMap(sRequestsProjectionMap);
+	            break;
+	        case HASHTAGS:
+	        	qb.setTables(RequestDbAdapter.HASHTAG_TABLE_NAME);
+	            qb.setProjectionMap(sHashTagsProjectionMap);
+	            break;
+	        case CONDITIONS:
+	        	qb.setTables(RequestDbAdapter.CONDITION_TABLE_NAME);
+	            qb.setProjectionMap(sConditionsProjectionMap);
+	            break;
+	        case VARIABLES:
+	        	qb.setTables(RequestDbAdapter.VARIABLE_TABLE_NAME);
+	            qb.setProjectionMap(sVariablesProjectionMap);
+	            break;
+	
+	        default:
+	            throw new IllegalArgumentException("Unknown URI " + uri);
         }
 
         // If no sort order is specified use the default
@@ -128,6 +128,7 @@ public class RequestProvider extends ContentProvider {
     }
 
     static {
+    	
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         sUriMatcher.addURI(Request.AUTHORITY, "requests", REQUESTS);
         sUriMatcher.addURI(Request.AUTHORITY, "hashtags", HASHTAGS);

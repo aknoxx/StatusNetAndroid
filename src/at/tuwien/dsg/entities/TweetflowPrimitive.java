@@ -23,12 +23,12 @@ public class TweetflowPrimitive {
             "EEE MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH);
 	
 	private final String requestPatternString = "[A-Z]{2}" +
-					"( @\\w+)? " +
-					"\\w+\\.\\w+" +
-					"( http://[\\S\\./]+)?" +
-					"( \\w+=\\S+(&\\w+=\\S+)+)?" +
-					"( \\[@\\w+\\.\\w+\\?=\\w+\\])?" +
-					"( #\\w+)*";
+		"( @\\w+)? " +						// optional @addressedUser
+		"\\w+\\.\\w+" +						// operation.service
+		"( http://[\\S\\./]+)?" +			// optional url
+		"(\\?\\w+=\\S+(&\\w+=\\S+)+)?" +	// optional querystring
+		"( \\[@\\w+\\.\\w+\\?=\\w+\\])?" +	// optional condition
+		"( #\\w+)*";						// optional #hashtags
 	
 	private final String variableAssignmentString = 
 					"VA " +
@@ -57,7 +57,7 @@ public class TweetflowPrimitive {
 		userPattern = Pattern.compile("@\\w+");
 		// location=Vienna,1020&date=today&time=20:00
 		queryStringPattern = Pattern.compile("\\w+=\\S+(&\\w+=\\S+)+");
-		operationServicePattern = Pattern.compile(" \\S+\\.\\S+ ");
+		operationServicePattern = Pattern.compile(" \\S+\\.\\w+[ ?]"); // ending with " " followed by a url or with "?" followed by a querystring
 		conditionPattern = Pattern.compile("\\[@\\w+\\.\\w+\\?=\\w+\\]");
 		
 		variableAssignmentPattern = Pattern.compile(variableAssignmentString);
@@ -96,9 +96,11 @@ public class TweetflowPrimitive {
 			
 			matcher = operationServicePattern.matcher(requestText);
 			if(matcher.find()) {
-				String[] operationService = matcher.group().trim().split("\\.");
-				request.setOperation(operationService[0]);
-				request.setService(operationService[1]);
+				String[] operationService = matcher.group().split("\\.");
+				// trim to remove the preceding " "
+				request.setOperation(operationService[0].trim());
+				// removing the " " or "?" following the service
+				request.setService(operationService[1].substring(0, operationService[1].length()-1));
 			}
 			else {
 				return null;
