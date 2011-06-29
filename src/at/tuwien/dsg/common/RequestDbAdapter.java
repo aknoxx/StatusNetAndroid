@@ -50,7 +50,8 @@ public class RequestDbAdapter {
         + Requests.COMPLETE_REQUEST_TEXT + " TEXT,"
         + Requests.TWEET_ID + " LONG,"
         + Requests.SENDER_NAME + " TEXT,"
-        + Requests.CREATED_AT + " LONG"
+        + Requests.CREATED_AT + " LONG,"
+        + Requests.PREDECESSOR_TWEETID  +" LONG"
         + ");";
 	
     private static final String CREATE_TABLE_HASHTAG =
@@ -178,7 +179,8 @@ public class RequestDbAdapter {
         values.put(Requests.COMPLETE_REQUEST_TEXT, request.getCompleteRequestText());
         values.put(Requests.TWEET_ID, request.getTweetId());
         values.put(Requests.SENDER_NAME, request.getRequester());
-        values.put(Requests.CREATED_AT, request.getCreatedAt().getTime());
+        values.put(Requests.CREATED_AT, request.getCreatedAt().getTime());        
+        values.put(Requests.PREDECESSOR_TWEETID, request.getPredecessorTweetId());
         
         long requestId;
         if((requestId = mDb.insert(REQUEST_TABLE_NAME, null, values)) < 0) {
@@ -284,7 +286,8 @@ public class RequestDbAdapter {
 				Requests.COMPLETE_REQUEST_TEXT,
 				Requests.TWEET_ID,
 				Requests.SENDER_NAME,
-				Requests.CREATED_AT
+				Requests.CREATED_AT,
+				Requests.PREDECESSOR_TWEETID
 			};
 		
 		String[] hashtagSelection = 
@@ -324,6 +327,7 @@ public class RequestDbAdapter {
 				int tweetIdColumn = rc.getColumnIndex(Requests.TWEET_ID);
 				int senderNameColumn = rc.getColumnIndex(Requests.SENDER_NAME);
 				int createdAtColumn = rc.getColumnIndex(Requests.CREATED_AT);
+				int predecessorTweetIdColumn = rc.getColumnIndex(Requests.PREDECESSOR_TWEETID);
 				
 				rc.moveToFirst();
 				while (rc.isAfterLast() == false) {
@@ -337,6 +341,7 @@ public class RequestDbAdapter {
 					r.setUrl(rc.getString(urlColumn));
 					r.setQualifier(rc.getString(qualifierColumn));
 					r.setRequester(rc.getString(senderNameColumn));
+					r.setPredecessorTweetId(rc.getLong(predecessorTweetIdColumn));
 					
 					r.setSaved(true);
 					r.setDbId(rc.getLong(idColumn));

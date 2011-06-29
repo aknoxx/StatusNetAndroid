@@ -18,9 +18,11 @@ public class Request implements Serializable {
 	private List<String> hashTags;
 	private String url;
 	private Condition condition;
-	private Map<String, String> variables;
-	
+	private Map<String, String> variables;	
 	private String completeRequestText;
+	
+	private long predecessorTweetId;
+	private boolean isClosedSequence;
 	
 	private long tweetId;
 	private String sender;
@@ -186,5 +188,21 @@ public class Request implements Serializable {
 
 	public long getDbId() {
 		return dbId;
+	}
+
+	public void setPredecessorTweetId(long predecessorTweetId) {
+		this.predecessorTweetId = predecessorTweetId;
+	}
+
+	public long getPredecessorTweetId() {
+		return predecessorTweetId;
+	}
+
+	public void setClosedSequence(boolean isClosedSequence) {
+		this.isClosedSequence = isClosedSequence;
+	}
+
+	public boolean isClosedSequence() {
+		return isClosedSequence;
 	}
 }

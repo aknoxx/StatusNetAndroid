@@ -6,26 +6,26 @@ import java.util.List;
 import org.xmlpull.v1.XmlPullParser;
 
 import android.content.res.XmlResourceParser;
-import at.tuwien.dsg.entities.TweetflowPrimitive;
+import at.tuwien.dsg.common.TweetflowFilter;
 
 public class TweetFilterParser {
-	public List<TweetflowPrimitive> parse(XmlResourceParser xmlResourceParser) {
-        List<TweetflowPrimitive> primitives = null;
+	public List<TweetflowFilter> parse(XmlResourceParser xmlResourceParser) {
+        List<TweetflowFilter> primitives = null;
         
         try {
             int eventType = xmlResourceParser.getEventType();
-            TweetflowPrimitive currentPrimitive = null;
+            TweetflowFilter currentPrimitive = null;
             boolean done = false;
             while (eventType != XmlPullParser.END_DOCUMENT && !done){
                 String name = null;
                 switch (eventType){
                     case XmlPullParser.START_DOCUMENT:
-                    	primitives = new ArrayList<TweetflowPrimitive>();
+                    	primitives = new ArrayList<TweetflowFilter>();
                         break;
                     case XmlPullParser.START_TAG:
                         name = xmlResourceParser.getName();
                         if (name.equalsIgnoreCase("primitive")){
-                        	currentPrimitive = new TweetflowPrimitive();
+                        	currentPrimitive = new TweetflowFilter();
                         } else if (currentPrimitive != null){
                             /*if (name.equalsIgnoreCase("qualifier")){
                             	currentPrimitive.setQualifier(xmlResourceParser.nextText());

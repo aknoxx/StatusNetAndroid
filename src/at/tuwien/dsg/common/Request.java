@@ -92,6 +92,12 @@ public final class Request {
          * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
          */
         public static final String CREATED_AT = "createdAt";
+        
+        /**
+         * The timestamp for when the note was created
+         * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
+         */
+        public static final String PREDECESSOR_TWEETID = "predecessorTweetId";
     }
     
     public static final class HashTags implements BaseColumns {

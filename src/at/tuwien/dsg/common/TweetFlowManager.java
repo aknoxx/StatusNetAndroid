@@ -21,13 +21,13 @@ import at.tuwien.dsg.entities.Condition;
 import at.tuwien.dsg.entities.DisplayData;
 import at.tuwien.dsg.entities.Network;
 import at.tuwien.dsg.entities.Request;
-import at.tuwien.dsg.entities.TweetflowPrimitive;
 
 public class TweetFlowManager implements ITweetflowManager {
 
 	private RequestDbAdapter dbAdapter;
 	private static Context ctx;
 	private DisplayData dd;
+	private TweetflowFilter tfFilter;
 	
 	public ArrayList<Request> getFilteredRequests() {
 		return dd.getFilteredRequests();
@@ -73,6 +73,7 @@ public class TweetFlowManager implements ITweetflowManager {
 			dbAdapter = new RequestDbAdapter(ctx);
 			dbAdapter.open();
 		}
+		tfFilter = new TweetflowFilter();
 	}
 	
 	public Long getNewestReceivedId() {
@@ -95,6 +96,7 @@ public class TweetFlowManager implements ITweetflowManager {
 	}
 	
 	public boolean saveRequests() {
+		// TODO save closed squences !!!
 		boolean success = true;
 		for (Request request : dd.getFilteredRequests()) {
 			if(dbAdapter.saveRequest(request) > 0) {
@@ -251,17 +253,37 @@ public class TweetFlowManager implements ITweetflowManager {
 	}
 	
 	public void addUserStatus(ConnManager.UserStatus status) {
-		Request request;
-		if((request = extractRequestFromUserStatus(status)) != null) {
-			dd.getRequests().add(0, request);
-			dd.setNewestReceivedId(status.getId());
+		List<Request> requests;
+		if((requests = extractRequestFromUserStatus(status)) != null) {
+			for (Request r : requests) {
+				dd.getRequests().add(0, r);
+				dd.setNewestReceivedId(status.getId());
+			}			
 			refreshFilteredRequests();
 		}	
 	}
 	
-	public Request extractRequestFromUserStatus(ConnManager.UserStatus status) {
+	private Long predecessorTweetId = null;
+	
+	public List<Request> extractRequestFromUserStatus(ConnManager.UserStatus status) {
 		try {
-			return new TweetflowPrimitive().extractRequestFromBloaStatus(status);
+			List<Request> requests = tfFilter.extractRequestFromBloaStatus(status);
+//			if(requests != null) {
+//				if(requests.size() == 1) {
+//					Request request = requests.get(0);
+//					if(request.isClosedSequence()) {
+//						if(request.getPredecessorTweetId() == new Long(0)) {
+//							predecessorTweetId = request.getTweetId();
+//						}
+//						else {
+//							request.setPredecessorTweetId(predecessorTweetId);
+//						}
+//					}
+//				}
+//				return requests;
+//			}
+//			return null;
+			return requests;
 		} catch (ParseException e) {
 			return null;
 		}
@@ -269,7 +291,7 @@ public class TweetFlowManager implements ITweetflowManager {
 	
 	public Request extractRequest(Status status) {
 		
-		return new TweetflowPrimitive().extractRequest(status);
+		return new TweetflowFilter().extractRequest(status);
 	}
 	
 	public void resetIds() {
