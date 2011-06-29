@@ -15,6 +15,7 @@ public class Request implements Serializable {
 	private String addressedUser;
 	private String operation;
 	private String service;
+	private String operationExecutionStatus;
 	private List<String> hashTags;
 	private String url;
 	private Condition condition;
@@ -204,5 +205,13 @@ public class Request implements Serializable {
 
 	public boolean isClosedSequence() {
 		return isClosedSequence;
+	}
+
+	public void setOperationExecutionStatus(String operationExecutionStatus) {
+		this.operationExecutionStatus = operationExecutionStatus;
+	}
+
+	public String getOperationExecutionStatus() {
+		return operationExecutionStatus;
 	}
 }

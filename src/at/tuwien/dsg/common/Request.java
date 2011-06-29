@@ -63,6 +63,8 @@ public final class Request {
          */
         public static final String SERVICE = "service";
         
+        public static final String OPERATION_EXECUTION_STATUS = "operationExecutionStatus";
+        
         /**
          * The qualifier of the request
          * <P>Type: TEXT</P>

@@ -45,6 +45,7 @@ public class RequestDbAdapter {
         + Requests.QUALIFIER + " TEXT,"
         + Requests.ADDRESSED_USER_NAME + " TEXT,"
         + Requests.OPERATION + " TEXT,"
+        + Requests.OPERATION_EXECUTION_STATUS + " TEXT,"
         + Requests.SERVICE + " TEXT,"
         + Requests.URL + " TEXT,"
         + Requests.COMPLETE_REQUEST_TEXT + " TEXT,"
@@ -174,6 +175,7 @@ public class RequestDbAdapter {
         values.put(Requests.QUALIFIER, request.getQualifier());
         values.put(Requests.ADDRESSED_USER_NAME, request.getAddressedUser());
         values.put(Requests.OPERATION, request.getOperation());
+        values.put(Requests.OPERATION_EXECUTION_STATUS, request.getOperationExecutionStatus());
         values.put(Requests.SERVICE, request.getService());
         values.put(Requests.URL, request.getUrl());
         values.put(Requests.COMPLETE_REQUEST_TEXT, request.getCompleteRequestText());
@@ -281,6 +283,7 @@ public class RequestDbAdapter {
 				Requests.QUALIFIER,
 				Requests.ADDRESSED_USER_NAME,
 				Requests.OPERATION,
+				Requests.OPERATION_EXECUTION_STATUS,
 				Requests.SERVICE,
 				Requests.URL,
 				Requests.COMPLETE_REQUEST_TEXT,
@@ -321,6 +324,7 @@ public class RequestDbAdapter {
 				int qualifierColumn = rc.getColumnIndex(Requests.QUALIFIER);
 				int addressedUserNameColumn = rc.getColumnIndex(Requests.ADDRESSED_USER_NAME);
 				int operationColumn = rc.getColumnIndex(Requests.OPERATION);
+				int operationExecutionStatusColumn = rc.getColumnIndex(Requests.OPERATION_EXECUTION_STATUS);
 				int serviceColumn = rc.getColumnIndex(Requests.SERVICE);
 				int urlColumn = rc.getColumnIndex(Requests.URL);
 				int completeRequestTextColumn = rc.getColumnIndex(Requests.COMPLETE_REQUEST_TEXT);
@@ -336,6 +340,7 @@ public class RequestDbAdapter {
 					r.setCompleteRequestText(rc.getString(completeRequestTextColumn));
 					r.setCreatedAt(new Date(rc.getLong(createdAtColumn)));
 					r.setOperation(rc.getString(operationColumn));
+					r.setOperationExecutionStatus(rc.getString(operationExecutionStatusColumn));
 					r.setService(rc.getString(serviceColumn));
 					r.setTweetId(rc.getLong(tweetIdColumn));
 					r.setUrl(rc.getString(urlColumn));

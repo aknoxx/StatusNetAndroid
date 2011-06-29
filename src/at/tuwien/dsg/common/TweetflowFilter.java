@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import at.tuwien.dsg.entities.Condition;
+import at.tuwien.dsg.entities.OperationExecutionStatus;
 import at.tuwien.dsg.entities.Request;
 
 public class TweetflowFilter {
@@ -43,6 +44,7 @@ public class TweetflowFilter {
 	private static Pattern queryStringPattern;
 	private static Pattern operationServicePattern;
 	private static Pattern operationServiceAlonePattern;
+	private static Pattern logServiceExecutionStatusPattern;
 	private static Pattern conditionPattern;
 	
 	private static Pattern variableAssignmentPattern;
@@ -73,6 +75,8 @@ public class TweetflowFilter {
 		operationServicePattern = Pattern.compile(operationServiceAlone + "[ \\?]");
 		// e.g.: " get.Availability"
 		operationServiceAlonePattern = Pattern.compile(operationServiceAlone);
+		logServiceExecutionStatusPattern = Pattern.compile("did(Begin|Finish|Cancle)\\w*");
+		
 		conditionPattern = Pattern.compile("\\[@\\w+\\.\\w+\\?=\\w+\\]");
 		
 		variableAssignmentPattern = Pattern.compile(variableAssignmentString);
@@ -117,6 +121,24 @@ public class TweetflowFilter {
 				String[] operationService = matcher.group().split("\\.");
 				// trim to remove the preceding " "
 				request.setOperation(operationService[0].trim());
+				
+				if(request.getQualifier().equals("LG")) {
+					matcher = logServiceExecutionStatusPattern.matcher(request.getOperation());
+					if(matcher.find()) {
+						String SEStatus = matcher.group().substring(3);
+						
+						if(SEStatus.startsWith(OperationExecutionStatus.Begin.toString())) {
+							request.setOperationExecutionStatus(OperationExecutionStatus.Begin.toString());
+						}
+						else if(SEStatus.startsWith(OperationExecutionStatus.Cancel.toString())) {
+							request.setOperationExecutionStatus(OperationExecutionStatus.Cancel.toString());
+						}
+					}
+					else {
+						request.setOperationExecutionStatus(OperationExecutionStatus.Finish.toString());
+					}
+				}	
+				
 				// removing the " " or "?" following the service
 				//request.setService(operationService[1].substring(0, operationService[1].length()-1));
 				
@@ -136,6 +158,24 @@ public class TweetflowFilter {
 					String[] operationService = matcher.group().split("\\.");
 					// trim to remove the preceding " "
 					request.setOperation(operationService[0].trim());
+					
+					if(request.getQualifier().equals("LG")) {
+						matcher = logServiceExecutionStatusPattern.matcher(request.getOperation());
+						if(matcher.find()) {
+							String SEStatus = matcher.group().substring(3);
+							
+							if(SEStatus.startsWith(OperationExecutionStatus.Begin.toString())) {
+								request.setOperationExecutionStatus(OperationExecutionStatus.Begin.toString());
+							}
+							else if(SEStatus.startsWith(OperationExecutionStatus.Cancel.toString())) {
+								request.setOperationExecutionStatus(OperationExecutionStatus.Cancel.toString());
+							}
+						}
+						else {
+							request.setOperationExecutionStatus(OperationExecutionStatus.Finish.toString());
+						}
+					}					
+					
 					// removing the " " or "?" following the service
 					//request.setService(operationService[1].substring(0, operationService[1].length()-1));
 					
