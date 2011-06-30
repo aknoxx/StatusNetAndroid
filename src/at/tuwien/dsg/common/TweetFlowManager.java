@@ -37,8 +37,8 @@ public class TweetFlowManager implements ITweetflowManager {
 		dd.setFilteredRequests(filteredRequests);
 	}
 
-	private static final CharSequence[] qualifiers = { "SR", "SF", "TF", "LG", "VA",
-		"AccessVariable", "AccessServiceResult" };
+	private static final CharSequence[] qualifiers = { "SR", "SF", "TF", "LG", "SP",
+		"RT", "SD", "RJ", "VA", "AccessVariable", "AccessServiceResult" };
 	
 	private static TweetFlowManager instance = null;
 	
