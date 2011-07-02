@@ -28,9 +28,10 @@ public class InfoActivity extends Activity {
 		
 		actionBar.setTitle("Info");
 		final Action requestsIntentAction = new IntentAction(this, new Intent(this, TweetflowActivity.class), R.drawable.requests);
-		       
-		actionBar.addAction(requestsIntentAction);	
+		final Action viewSavedRequestsIntentAction = new IntentAction(this, new Intent(this, SavedRequestsActivity.class), R.drawable.lock);
 		
+		actionBar.addAction(requestsIntentAction);	
+		actionBar.addAction(viewSavedRequestsIntentAction);
 		
 		Button btnLogout = (Button) findViewById(R.id.btn_logout);
 		btnLogout.setOnClickListener(new OnClickListener() {

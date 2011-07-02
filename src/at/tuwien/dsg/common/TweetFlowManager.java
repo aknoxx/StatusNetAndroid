@@ -29,14 +29,6 @@ public class TweetFlowManager implements ITweetflowManager {
 	private DisplayData dd;
 	private TweetflowFilter tfFilter;
 	
-	public ArrayList<Request> getFilteredRequests() {
-		return dd.getFilteredRequests();
-	}
-
-	public void setFilteredRequests(ArrayList<Request> filteredRequests) {
-		dd.setFilteredRequests(filteredRequests);
-	}
-
 	private static final CharSequence[] qualifiers = { "SR", "SF", "TF", "LG", "SP",
 		"RT", "SD", "RJ", "VA", "AccessVariable", "AccessServiceResult" };
 	
@@ -49,10 +41,6 @@ public class TweetFlowManager implements ITweetflowManager {
 		}
 		return instance;
 	}	
-	
-	public DisplayData getDd() {
-		return dd;
-	}
 
 	private TweetFlowManager(Context ctx, DisplayData displayData) {
 		if(displayData == null) {
@@ -67,6 +55,8 @@ public class TweetFlowManager implements ITweetflowManager {
 			
 			dd.setRequests(new ArrayList<Request>());
 			dd.setFilteredRequests(new ArrayList<Request>());
+			dd.setSavedRequests(new ArrayList<Request>());
+			dd.setSavedFilteredRequests(new ArrayList<Request>());
 		}
 		else {
 			dd = displayData;
@@ -74,6 +64,22 @@ public class TweetFlowManager implements ITweetflowManager {
 			dbAdapter.open();
 		}
 		tfFilter = new TweetflowFilter();
+	}
+	
+	public DisplayData getDd() {
+		return dd;
+	}
+	
+	public ArrayList<Request> getFilteredRequests() {
+		return dd.getFilteredRequests();
+	}
+	
+	public ArrayList<Request> getSavedFilteredRequests() {
+		return dd.getSavedFilteredRequests();
+	}
+
+	public void setFilteredRequests(ArrayList<Request> filteredRequests) {
+		dd.setFilteredRequests(filteredRequests);
 	}
 	
 	public Long getNewestReceivedId() {
@@ -124,6 +130,17 @@ public class TweetFlowManager implements ITweetflowManager {
 			if(dd.getDisplayFilter().containsKey(req.getQualifier())) {
 				if(dd.getDisplayFilter().get(req.getQualifier())) {
 					dd.getFilteredRequests().add(req);
+				}
+			}
+		}
+	}
+	
+	private void refreshFilteredSavedRequests() {
+		dd.getSavedFilteredRequests().clear();
+		for (Request req : dd.getSavedRequests()) {
+			if(dd.getDisplayFilter().containsKey(req.getQualifier())) {
+				if(dd.getDisplayFilter().get(req.getQualifier())) {
+					dd.getSavedFilteredRequests().add(req);
 				}
 			}
 		}
@@ -301,8 +318,11 @@ public class TweetFlowManager implements ITweetflowManager {
 
 	@Override
 	public void loadRequestsFromDb() {
-		dd.getRequests().addAll(dbAdapter.loadAllRequests());
-		refreshFilteredRequests();		
+		List<Request> rs;
+		if((rs = dbAdapter.loadAllRequests()) != null) {
+			dd.getSavedRequests().addAll(rs);
+		}
+		refreshFilteredSavedRequests();		
 	}
 	
 	public boolean loadRequestsFromContentProvider(ContentProviderClient requestsProvider,

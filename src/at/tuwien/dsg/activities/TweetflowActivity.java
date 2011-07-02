@@ -53,18 +53,15 @@ import at.tuwien.dsg.entities.DisplayData;
 import at.tuwien.dsg.entities.Network;
 import at.tuwien.dsg.entities.Request;
 
-public class TweetflowActivity extends ListActivity {// extends ActionBarActivity {
-	private static final String TAG = "TweetflowActivity";
+public class TweetflowActivity extends MyListActivity {// extends ActionBarActivity {
 	
 	private static LinearLayout container;
 	
 	private static final int SAVE_ID = Menu.FIRST;
-	private static final int LOAD_ID = Menu.FIRST + 1;
 	private static final int DELETE_ID = Menu.FIRST + 2;
 	private static final int RESET_ID = Menu.FIRST + 3;	
 	private static final int CLEAR_ID = Menu.FIRST + 4;
 	private static final int CONTEXT_DELETE_REQUEST_ID = Menu.FIRST + 5;
-	private static final int TEST_DATA_ID = Menu.FIRST + 6;
 	
 	
 	private static final int FILTER_DIALOG = 4;	
@@ -97,17 +94,19 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	
 	/** Called when the activity is first created. */
 	public void onCreate(Bundle icicle) {
+		this.TAG = "TweetflowActivity";
 		super.onCreate(icicle);
-		Log.d(TAG, "onCreate()");
 		
 		setContentView(R.layout.request_view);
 		actionBar = (ActionBar) findViewById(R.id.actionbar);
 		
 		actionBar.setTitle("Requests");
 		final Action infoIntentAction = new IntentAction(this, new Intent(this, InfoActivity.class), R.drawable.info);
+		final Action viewSavedRequestsIntentAction = new IntentAction(this, new Intent(this, SavedRequestsActivity.class), R.drawable.lock);
 		
 		actionBar.addAction(new RefreshAction());
-		actionBar.addAction(new FilterAction());        
+		actionBar.addAction(new FilterAction());
+		actionBar.addAction(viewSavedRequestsIntentAction);
 		actionBar.addAction(infoIntentAction);
 		
 		ListView listView = getListView();
@@ -139,6 +138,7 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		}		
 		mConnManager = ConnManager.getInstance(this);
 		
+		// Get Content Providers
 		requestsProvider = getContentResolver().acquireContentProviderClient(Requests.CONTENT_URI);
 		hashTagsProvider = getContentResolver().acquireContentProviderClient(HashTags.CONTENT_URI);
 		conditionsProvider = getContentResolver().acquireContentProviderClient(Conditions.CONTENT_URI);
@@ -153,21 +153,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	}
 	
 	@Override
-	public void onStart() {
-		super.onStart();
-		Log.d(TAG, "onStart()");
-	}
-	
-	@Override
-	public void onRestart() {
-		super.onRestart();
-		Log.d(TAG, "onRestart()");
-	}
-	
-	@Override
 	public void onResume() {
 		super.onResume();
-		Log.d(TAG, "onResume()");
 
 		loggedIn = mSettings.getBoolean(ConnManager.LOGGEDIN, false);
 		if(!loggedIn) {
@@ -191,7 +178,6 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d(TAG, "onPause()");
 		
 		FileOutputStream fos = null;
 		ObjectOutputStream out = null;		
@@ -213,20 +199,9 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
 		}	
 	}
 	
-	@Override
-	public void onStop() {
-		super.onStop();
-		Log.d(TAG, "onStop()");
-	}
-	
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-		Log.d(TAG, "onDestroy()");
-	}
-	
-	protected void onFinish() {
-		Log.d(TAG, "onFinish()");
+	public void onFinish() {
+		super.onFinish();
+		
 		mConnManager.shutdownConnectionManager();
 	}
 	
@@ -349,10 +324,8 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
         super.onCreateOptionsMenu(menu);
         this.menu = menu;
         menu.add(0, SAVE_ID, 0, "Save requests");
-        menu.add(0, LOAD_ID, 1, "Load saved requests");
         menu.add(0, CLEAR_ID, 2, "Clear request list");
         menu.add(0, DELETE_ID, 3, "Delete saved requests");
-        menu.add(0, TEST_DATA_ID, 4, "Load test data");
         menu.add(0, RESET_ID, 4, "Reset receiver");
         return true;
     }
@@ -376,13 +349,6 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
         	}
 
 	        return true;
-        case LOAD_ID:        
-        	//new LoadDataTask().execute();  
-        	
-        	new LoadDataContentProviderTask().execute(requestsProvider,
-        			hashTagsProvider, conditionsProvider, variablesProvider);
-
-	        return true;
     	case CLEAR_ID:
     		
     		tfm.clearRequestList();
@@ -396,12 +362,6 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
     		
     		Toast.makeText(this, "All saved Requests deleted!", Toast.LENGTH_LONG)
 			.show();
-    		
-    		return true;
-    	case TEST_DATA_ID:
-    		
-    		tfm.setTestTFs();
-    		adapter.notifyDataSetChanged();
     		
     		return true;
     	case RESET_ID:
@@ -534,7 +494,6 @@ public class TweetflowActivity extends ListActivity {// extends ActionBarActivit
                                 	   tfm.getDisplayFilter().put(fTypes[j], 
                                 			   new Boolean(fCheckedItems[j]));
                                    }
-                                   //requestTimeline = tfm.loadFilteredRequests();
                                    tfm.loadFilteredRequests();
                                    adapter.notifyDataSetChanged();
                                 }

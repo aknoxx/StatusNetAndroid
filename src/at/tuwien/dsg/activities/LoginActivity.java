@@ -22,12 +22,15 @@ import at.tuwien.dsg.entities.Network;
 
 public class LoginActivity extends Activity {
 
+	private ConnectivityManager cm;
 	private ActionBar actionBar;
 	private TweetFlowManager tfm;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		
 		setContentView(R.layout.login_view);
 		
@@ -83,7 +86,6 @@ public class LoginActivity extends Activity {
 	}
 	
 	public boolean isOnline() {
-		 ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		 return cm.getActiveNetworkInfo().isConnected();
 	}
 	
