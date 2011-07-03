@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import at.tuwien.dsg.common.Status;
 import at.tuwien.dsg.common.Request.Conditions;
 import at.tuwien.dsg.common.Request.HashTags;
 import at.tuwien.dsg.common.Request.Requests;
@@ -22,7 +21,7 @@ import at.tuwien.dsg.entities.DisplayData;
 import at.tuwien.dsg.entities.Network;
 import at.tuwien.dsg.entities.Request;
 
-public class TweetFlowManager implements ITweetflowManager {
+public class TweetFlowManager{
 
 	private RequestDbAdapter dbAdapter;
 	private static Context ctx;
@@ -312,7 +311,6 @@ public class TweetFlowManager implements ITweetflowManager {
 		dd.setNewestSavedId(new Long(0));
 	}
 
-	@Override
 	public void loadRequestsFromDb() {
 		List<Request> rs;
 		if((rs = dbAdapter.loadAllRequests()) != null) {
