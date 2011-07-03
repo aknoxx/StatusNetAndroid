@@ -22,8 +22,10 @@ public class Request implements Serializable {
 	private Map<String, String> variables;	
 	private String completeRequestText;
 	
-	private long predecessorTweetId;
+	private Long dependentOnTweetId;
 	private boolean isClosedSequence;
+	private Integer ordering;
+	private Integer dependentOrderNumber;
 	
 	private long tweetId;
 	private String sender;
@@ -191,12 +193,12 @@ public class Request implements Serializable {
 		return dbId;
 	}
 
-	public void setPredecessorTweetId(long predecessorTweetId) {
-		this.predecessorTweetId = predecessorTweetId;
+	public void setDependentOnTweetId(Long dependentOnTweetId) {
+		this.dependentOnTweetId = dependentOnTweetId;
 	}
 
-	public long getPredecessorTweetId() {
-		return predecessorTweetId;
+	public Long getDependentOnTweetId() {
+		return dependentOnTweetId;
 	}
 
 	public void setClosedSequence(boolean isClosedSequence) {
@@ -213,5 +215,21 @@ public class Request implements Serializable {
 
 	public String getOperationExecutionStatus() {
 		return operationExecutionStatus;
+	}
+
+	public void setOrdering(Integer ordering) {
+		this.ordering = ordering;
+	}
+
+	public Integer getOrdering() {
+		return ordering;
+	}
+
+	public void setDependentOrderNumber(Integer dependentOrderNumber) {
+		this.dependentOrderNumber = dependentOrderNumber;
+	}
+
+	public Integer getDependentOrderNumber() {
+		return dependentOrderNumber;
 	}
 }

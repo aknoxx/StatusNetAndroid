@@ -192,81 +192,82 @@ public class TweetFlowManager implements ITweetflowManager {
 	}
 	
 	public void setTestTFs() {
-		dd.getRequests().clear();
-		
-		long time = System.currentTimeMillis();
-		
-		String text = "SR forecast.weather location=vienna&date=weekend #weather #forecast #vienna #weekend" +
-				" - what's a SR? -> http://bit.ly/fF0yDp #tweetflows";
-		Status status = new Status(new String("User1"), text, new Date(time + 60000), (long) 5);
-		
-		text = "SR @johannes2112 recommend.Restaurant location=Vienna,1020&date=today&time=20:00 " +
-		 "[@ikangai.availability?=true]";
-		status = new Status(new String("User1"), text, new Date(time + 120000), (long) 4);
-		dd.getRequests().add(extractRequest(status));
-		
-		text = "SR @aknoxx proofread.WebPage http://www.ikangai.com/blog/tweetflows-specification-version-1-0";
-		status = new Status(new String("User1"), text, new Date(time + 180000), (long) 3);
-		dd.getRequests().add(extractRequest(status));
-		
-		text = "SF @ikangai didProofread.Blogentry http://www.ikangai.com/blog #tweetflows #specification";
-		status = new Status(new String("User1"), text, new Date(time + 240000), (long) 2);
-		dd.getRequests().add(extractRequest(status));
-		
-		refreshFilteredRequests();
+//		dd.getRequests().clear();
+//		
+//		long time = System.currentTimeMillis();
+//		
+//		String text = "SR forecast.weather location=vienna&date=weekend #weather #forecast #vienna #weekend" +
+//				" - what's a SR? -> http://bit.ly/fF0yDp #tweetflows";
+//		Status status = new Status(new String("User1"), text, new Date(time + 60000), (long) 5);
+//		
+//		text = "SR @johannes2112 recommend.Restaurant location=Vienna,1020&date=today&time=20:00 " +
+//		 "[@ikangai.availability?=true]";
+//		status = new Status(new String("User1"), text, new Date(time + 120000), (long) 4);
+//		dd.getRequests().add(extractRequestFromUserStatus(status));
+//		
+//		text = "SR @aknoxx proofread.WebPage http://www.ikangai.com/blog/tweetflows-specification-version-1-0";
+//		status = new Status(new String("User1"), text, new Date(time + 180000), (long) 3);
+//		dd.getRequests().add(extractRequest(status));
+//		
+//		text = "SF @ikangai didProofread.Blogentry http://www.ikangai.com/blog #tweetflows #specification";
+//		status = new Status(new String("User1"), text, new Date(time + 240000), (long) 2);
+//		dd.getRequests().add(extractRequest(status));
+//		
+//		refreshFilteredRequests();
 	}
 	
 	private ArrayList<Request> testDownloadData() {
 		
-		long time = System.currentTimeMillis();
-		
-		ArrayList<Request> requests = new ArrayList<Request>();
-		
-		String text = "VA state finished";
-		Status status = new Status(new String("User1"), text, new Date(time), (long) 2);
-		requests.add(extractRequest(status));
-		
-		text = "@ikangai.state?";
-		status = new Status(new String("User1"), text, new Date(time + 1* 60000), (long) 2);
-		requests.add(extractRequest(status));
-		
-		text = "@cerridan.recommend.Restaurant?";
-		status = new Status(new String("User1"), text, new Date(time + 2* 60000), (long) 2);
-		requests.add(extractRequest(status));
-		
-		text = "TF didBegin.Tweetflow #dinner #restaurant #carpark";
-		status = new Status(new String("User1"), text, new Date(time + 3* 60000), (long) 3);
-		requests.add(extractRequest(status));
-		
-		text = "SR @cerridan recommend.Restaurant location=Vienna,1020&date=today&time=20:00";
-		status = new Status(new String("User1"), text, new Date(time + 4* 60000), (long) 3);
-		requests.add(extractRequest(status));
-		
-		text = "SR @ikangai get.ParkingInfo location=Vienna,1020&date=today&time=20:00";
-		status = new Status(new String("User1"), text, new Date(time + 5* 60000), (long) 3);
-		requests.add(extractRequest(status));
-		
-		text = "SR @johannes2112 get.Availability location=Vienna,1020&date=today&time=20:00";
-		status = new Status(new String("User1"), text, new Date(time + 6* 60000), (long) 3);
-		requests.add(extractRequest(status));
-		
-		text = "SR @redali75 get.Availability location=Vienna,1020&date=today&time=20:00";
-		status = new Status(new String("User1"), text, new Date(time + 7* 60000), (long) 3);
-		requests.add(extractRequest(status));
-		
-		text = "TF didFinish.Tweetflow #dinner #restaurant #carpark";
-		status = new Status(new String("User1"), text, new Date(time + 8* 60000), (long) 3);
-		requests.add(extractRequest(status));
-		
-		text = "LG didread.article http://www.theregister.co.uk/2011/05/27/distimo_app_store_report/ #android #app #sales";
-		status = new Status(new String("User1"), text, new Date(time + 9* 60000), (long) 3);
-		requests.add(extractRequest(status));
-		
-		text = "LG didAdapt.LayoutToDisplayRequests date=27.05.2011&duration=0130 #StatusNetAndroid";
-		status = new Status(new String("User1"), text, new Date(time + 10* 60000), (long) 3);
-		requests.add(extractRequest(status));
-		
-		return requests;
+//		long time = System.currentTimeMillis();
+//		
+//		ArrayList<Request> requests = new ArrayList<Request>();
+//		
+//		String text = "VA state finished";
+//		Status status = new Status(new String("User1"), text, new Date(time), (long) 2);
+//		requests.add(extractRequest(status));
+//		
+//		text = "@ikangai.state?";
+//		status = new Status(new String("User1"), text, new Date(time + 1* 60000), (long) 2);
+//		requests.add(extractRequest(status));
+//		
+//		text = "@cerridan.recommend.Restaurant?";
+//		status = new Status(new String("User1"), text, new Date(time + 2* 60000), (long) 2);
+//		requests.add(extractRequest(status));
+//		
+//		text = "TF didBegin.Tweetflow #dinner #restaurant #carpark";
+//		status = new Status(new String("User1"), text, new Date(time + 3* 60000), (long) 3);
+//		requests.add(extractRequest(status));
+//		
+//		text = "SR @cerridan recommend.Restaurant location=Vienna,1020&date=today&time=20:00";
+//		status = new Status(new String("User1"), text, new Date(time + 4* 60000), (long) 3);
+//		requests.add(extractRequest(status));
+//		
+//		text = "SR @ikangai get.ParkingInfo location=Vienna,1020&date=today&time=20:00";
+//		status = new Status(new String("User1"), text, new Date(time + 5* 60000), (long) 3);
+//		requests.add(extractRequest(status));
+//		
+//		text = "SR @johannes2112 get.Availability location=Vienna,1020&date=today&time=20:00";
+//		status = new Status(new String("User1"), text, new Date(time + 6* 60000), (long) 3);
+//		requests.add(extractRequest(status));
+//		
+//		text = "SR @redali75 get.Availability location=Vienna,1020&date=today&time=20:00";
+//		status = new Status(new String("User1"), text, new Date(time + 7* 60000), (long) 3);
+//		requests.add(extractRequest(status));
+//		
+//		text = "TF didFinish.Tweetflow #dinner #restaurant #carpark";
+//		status = new Status(new String("User1"), text, new Date(time + 8* 60000), (long) 3);
+//		requests.add(extractRequest(status));
+//		
+//		text = "LG didread.article http://www.theregister.co.uk/2011/05/27/distimo_app_store_report/ #android #app #sales";
+//		status = new Status(new String("User1"), text, new Date(time + 9* 60000), (long) 3);
+//		requests.add(extractRequest(status));
+//		
+//		text = "LG didAdapt.LayoutToDisplayRequests date=27.05.2011&duration=0130 #StatusNetAndroid";
+//		status = new Status(new String("User1"), text, new Date(time + 10* 60000), (long) 3);
+//		requests.add(extractRequest(status));
+//		
+//		return requests;
+		return new ArrayList<Request>();
 	}
 	
 	public void addUserStatus(ConnManager.UserStatus status) {
@@ -284,7 +285,7 @@ public class TweetFlowManager implements ITweetflowManager {
 	
 	public List<Request> extractRequestFromUserStatus(ConnManager.UserStatus status) {
 		try {
-			List<Request> requests = tfFilter.extractRequestFromBloaStatus(status);
+			List<Request> requests = tfFilter.extractRequestFromUserStatus(status);
 //			if(requests != null) {
 //				if(requests.size() == 1) {
 //					Request request = requests.get(0);
@@ -304,11 +305,6 @@ public class TweetFlowManager implements ITweetflowManager {
 		} catch (ParseException e) {
 			return null;
 		}
-	}
-	
-	public Request extractRequest(Status status) {
-		
-		return new TweetflowFilter().extractRequest(status);
 	}
 	
 	public void resetIds() {

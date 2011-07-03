@@ -99,7 +99,7 @@ public final class Request {
          * The timestamp for when the note was created
          * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
          */
-        public static final String PREDECESSOR_TWEETID = "predecessorTweetId";
+        public static final String DEPENDENT_ON_TWEETID = "dependentOnTweetId";
     }
     
     public static final class HashTags implements BaseColumns {
