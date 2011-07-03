@@ -146,6 +146,10 @@ public class RequestProvider extends ContentProvider {
         sRequestsProjectionMap.put(Requests.TWEET_ID, Requests.TWEET_ID);
         sRequestsProjectionMap.put(Requests.SENDER_NAME, Requests.SENDER_NAME);
         sRequestsProjectionMap.put(Requests.CREATED_AT, Requests.CREATED_AT);
+        sRequestsProjectionMap.put(Requests.IS_CLOSED_SEQUENCE, Requests.IS_CLOSED_SEQUENCE);
+        sRequestsProjectionMap.put(Requests.DEPENDENT_ON_TWEETID, Requests.DEPENDENT_ON_TWEETID);
+        sRequestsProjectionMap.put(Requests.ORDERING, Requests.ORDERING);
+        sRequestsProjectionMap.put(Requests.DEPENDENT_ON_NUMBER, Requests.DEPENDENT_ON_NUMBER);
 
         sHashTagsProjectionMap = new HashMap<String, String>();
         sHashTagsProjectionMap.put(HashTags._ID, HashTags._ID);

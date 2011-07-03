@@ -52,7 +52,10 @@ public class RequestDbAdapter {
         + Requests.TWEET_ID + " LONG,"
         + Requests.SENDER_NAME + " TEXT,"
         + Requests.CREATED_AT + " LONG,"
-        + Requests.DEPENDENT_ON_TWEETID  +" LONG"
+        + Requests.IS_CLOSED_SEQUENCE + " INTEGER,"
+        + Requests.DEPENDENT_ON_TWEETID  +" LONG,"
+        + Requests.ORDERING + " INTEGER,"
+        + Requests.DEPENDENT_ON_NUMBER  +" INTEGER"
         + ");";
 	
     private static final String CREATE_TABLE_HASHTAG =
@@ -181,8 +184,11 @@ public class RequestDbAdapter {
         values.put(Requests.COMPLETE_REQUEST_TEXT, request.getCompleteRequestText());
         values.put(Requests.TWEET_ID, request.getTweetId());
         values.put(Requests.SENDER_NAME, request.getRequester());
-        values.put(Requests.CREATED_AT, request.getCreatedAt().getTime());        
+        values.put(Requests.CREATED_AT, request.getCreatedAt().getTime());      
+        values.put(Requests.IS_CLOSED_SEQUENCE, request.isClosedSequence());
         values.put(Requests.DEPENDENT_ON_TWEETID, request.getDependentOnTweetId());
+        values.put(Requests.ORDERING, request.getOrdering());
+        values.put(Requests.DEPENDENT_ON_NUMBER, request.getDependentOrderNumber());
         
         long requestId;
         if((requestId = mDb.insert(REQUEST_TABLE_NAME, null, values)) < 0) {
@@ -290,7 +296,10 @@ public class RequestDbAdapter {
 				Requests.TWEET_ID,
 				Requests.SENDER_NAME,
 				Requests.CREATED_AT,
-				Requests.DEPENDENT_ON_TWEETID
+				Requests.IS_CLOSED_SEQUENCE,
+				Requests.DEPENDENT_ON_TWEETID,
+				Requests.ORDERING,
+				Requests.DEPENDENT_ON_NUMBER
 			};
 		
 		String[] hashtagSelection = 
@@ -331,7 +340,10 @@ public class RequestDbAdapter {
 				int tweetIdColumn = rc.getColumnIndex(Requests.TWEET_ID);
 				int senderNameColumn = rc.getColumnIndex(Requests.SENDER_NAME);
 				int createdAtColumn = rc.getColumnIndex(Requests.CREATED_AT);
+				int isClosedSequenceColumn = rc.getColumnIndex(Requests.IS_CLOSED_SEQUENCE);
 				int dependentOnTweetIdColumn = rc.getColumnIndex(Requests.DEPENDENT_ON_TWEETID);
+				int orderingColumn = rc.getColumnIndex(Requests.ORDERING);
+				int dependentOnOrderNumberColumn = rc.getColumnIndex(Requests.DEPENDENT_ON_NUMBER);
 				
 				rc.moveToFirst();
 				while (rc.isAfterLast() == false) {
@@ -346,7 +358,10 @@ public class RequestDbAdapter {
 					r.setUrl(rc.getString(urlColumn));
 					r.setQualifier(rc.getString(qualifierColumn));
 					r.setRequester(rc.getString(senderNameColumn));
+					r.setClosedSequence(new Boolean(rc.getString(isClosedSequenceColumn)));
 					r.setDependentOnTweetId(rc.getLong(dependentOnTweetIdColumn));
+					r.setOrdering(rc.getInt(orderingColumn));
+					r.setDependentOrderNumber(rc.getInt(dependentOnOrderNumberColumn));
 					
 					r.setSaved(true);
 					r.setDbId(rc.getLong(idColumn));

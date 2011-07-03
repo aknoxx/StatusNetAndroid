@@ -99,7 +99,14 @@ public final class Request {
          * The timestamp for when the note was created
          * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
          */
+        
+        public static final String IS_CLOSED_SEQUENCE = "isClosedSequence";
+        
+        public static final String ORDERING = "ordering";
+        
         public static final String DEPENDENT_ON_TWEETID = "dependentOnTweetId";
+        
+        public static final String DEPENDENT_ON_NUMBER = "dependentOnNumber";
     }
     
     public static final class HashTags implements BaseColumns {
