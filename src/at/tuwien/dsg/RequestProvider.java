@@ -17,8 +17,7 @@ import at.tuwien.dsg.common.Request.Requests;
 import java.util.HashMap;
 
 /**
- * Provides access to a database of notes. Each note has a title, the note
- * itself, a creation date and a modified data.
+ * Provides access to a database of requests.
  */
 public class RequestProvider extends ContentProvider {
 
@@ -31,8 +30,6 @@ public class RequestProvider extends ContentProvider {
     private static final int HASHTAGS = 2;
     private static final int CONDITIONS = 3;
     private static final int VARIABLES = 4;
-    
-    private static final int REQUEST_ID = 10;
 
     private static final UriMatcher sUriMatcher;
 
@@ -88,21 +85,6 @@ public class RequestProvider extends ContentProvider {
         // Tell the cursor what uri to watch, so it knows when its source data changes
         c.setNotificationUri(getContext().getContentResolver(), uri);
         return c;
-    }
-
-    @Override
-    public String getType(Uri uri) {
-        switch (sUriMatcher.match(uri)) {
-        case REQUESTS:
-       // case LIVE_FOLDER_NOTES:
-       //     return Requests.CONTENT_TYPE;
-
-        case REQUEST_ID:
-            return Requests.CONTENT_ITEM_TYPE;
-
-        default:
-            throw new IllegalArgumentException("Unknown URI " + uri);
-        }
     }
 
     @Override
@@ -162,6 +144,11 @@ public class RequestProvider extends ContentProvider {
         sVariablesProjectionMap.put(Variables.NAME, Variables.NAME);
         sVariablesProjectionMap.put(Variables.VALUE, Variables.VALUE);
     }
+
+	@Override
+	public String getType(Uri uri) {
+		return null;
+	}
     
     /**
      * A test package can call this to get a handle to the database underlying RequestProvider,

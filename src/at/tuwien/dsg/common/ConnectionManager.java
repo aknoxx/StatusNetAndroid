@@ -39,7 +39,6 @@ import at.tuwien.dsg.activities.OAuthActivity;
 import at.tuwien.dsg.entities.Network;
 import at.tuwien.dsg.entities.Urls;
 
-
 public class ConnectionManager {
 	private static final String TAG = "ConnectionManager";
 		
@@ -89,14 +88,6 @@ public class ConnectionManager {
 		mClient = new DefaultHttpClient(tsccm, parameters);
 		
 		mSettings = ctx.getSharedPreferences(OAuthActivity.PREFS, Context.MODE_PRIVATE);
-		
-		/**
-		 * Set saved state
-		 */
-//		if(currentNetwork != null) {
-//			this.currentNetwork = currentNetwork;
-//			this.urls = new Urls(currentNetwork.getRestBaseURL());
-//		}
 	}
 	
 	public static void restartConnectionManagerWithNewNetwork(Network network) {
@@ -138,6 +129,7 @@ public class ConnectionManager {
 		return credentials.optString("screen_name", ctx.getString(R.string.bad_value));
 	}
 	
+	@SuppressWarnings("unused")
 	private String getLastTweet(JSONObject credentials) {
 		try {
 			JSONObject status = credentials.getJSONObject("status");
@@ -187,9 +179,6 @@ public class ConnectionManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-//		SharedPreferences.Editor editor = mSettings.edit();
-//		editor.putBoolean(LOGGEDIN, true);
 		return jso;
 	}
 	
@@ -250,7 +239,6 @@ public class ConnectionManager {
 			page = null;
 		}
 		
-		@SuppressWarnings("unused")
 		public TimelineSelector(String u, Long since, Long max, Integer cnt, Integer pg) {
 			url = u;
 			max_id = max;
@@ -270,7 +258,6 @@ public class ConnectionManager {
 			mStatus = status;
 			mUser = status.getJSONObject("user");
 		}
-		@SuppressWarnings("unused")
 		public long getId() {
 			return mStatus.optLong("id", -1);
 		}
@@ -293,7 +280,7 @@ public class ConnectionManager {
 	}
 
 	public void setUsername(String username) {
-		this.username = username;
+		ConnectionManager.username = username;
 	}
 
 	public String getUsername() {

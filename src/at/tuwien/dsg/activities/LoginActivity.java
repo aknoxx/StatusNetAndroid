@@ -6,7 +6,6 @@ import com.markupartist.android.widget.ActionBar;
 import com.markupartist.android.widget.ActionBar.Action;
 import com.markupartist.android.widget.ActionBar.IntentAction;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -43,7 +42,6 @@ public class LoginActivity extends MyActivity {
 		actionBar.setHomeAction(requestsIntentAction);
 		actionBar.setTitle("Login");
 		
-		// TODO Why intent doesn't contain data?
 		Intent intent = getIntent();
 		Bundle extras = intent.getExtras();
 		
@@ -78,10 +76,7 @@ public class LoginActivity extends MyActivity {
             		builder.setTitle("Select a network");
             		builder.setItems(items, new DialogInterface.OnClickListener() {
             		    public void onClick(DialogInterface dialog, int itemIndex) {
-            		    	
-            		        // ConnectionManager.getInstance(getApplicationContext(), null).initWithNetwork(n.get(itemIndex)); 
-            		    	ConnectionManager.restartConnectionManagerWithNewNetwork(n.get(itemIndex));
-            		        
+            		    	ConnectionManager.restartConnectionManagerWithNewNetwork(n.get(itemIndex));            		        
             		        startActivity(new Intent(LoginActivity.this, OAuthActivity.class));
             		    }
             		});
@@ -95,9 +90,5 @@ public class LoginActivity extends MyActivity {
 	
 	public boolean isOnline() {
 		 return cm.getActiveNetworkInfo().isConnected();
-	}
-	
-	private void redirectToTweetFlowTimeline() {
-		startActivity(new Intent(this, OAuthActivity.class));				
 	}
 }

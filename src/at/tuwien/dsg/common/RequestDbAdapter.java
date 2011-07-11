@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -225,8 +225,10 @@ public class RequestDbAdapter {
         /**
          * Insert Variables
          */
-        for (Iterator iter = request.getVariables().entrySet().iterator(); iter.hasNext();) {
-            Map.Entry entry = (Map.Entry)iter.next();
+        for (Iterator<Entry<String, String>> 
+        			iter = request.getVariables().entrySet().iterator(); 
+        			iter.hasNext();) {
+        	Entry<String, String> entry = iter.next();
             values.clear();
 			values.put(Variables.REQUEST_ID, requestId);
 			values.put(Variables.NAME, (String)entry.getKey());

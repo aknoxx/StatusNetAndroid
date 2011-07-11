@@ -3,23 +3,16 @@ package at.tuwien.dsg.activities;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import com.markupartist.android.widget.ActionBar;
-import com.markupartist.android.widget.ActionBar.Action;
-import com.markupartist.android.widget.ActionBar.IntentAction;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 import at.tuwien.dsg.R;
-import at.tuwien.dsg.common.ConnectionManager;
 import at.tuwien.dsg.common.TweetFlowManager;
 
 import com.markupartist.android.widget.ActionBar;
@@ -34,9 +27,7 @@ public class SavedRequestsActivity extends MyListActivity {
 	private static final int DELETE_ID = Menu.FIRST + 1;
 	
 	private ActionBar actionBar;
-	private ConnectionManager mConnManager;
 	
-	private TweetFlowManager tfm;
 	private MyArrayAdapter adapter;
 	
 	public void onCreate(Bundle icicle) {
@@ -54,9 +45,9 @@ public class SavedRequestsActivity extends MyListActivity {
 		actionBar.addAction(new FilterAction());
 		actionBar.addAction(infoIntentAction);
 		
-		tfm = TweetFlowManager.getInstance(this, null);
-		tfm.loadSavedRequests();
-		adapter = new MyArrayAdapter(this, tfm.getSavedFilteredRequests());
+		TweetFlowManager.getInstance(this, null);
+		TweetFlowManager.getInstance(this, null).loadSavedRequests();
+		adapter = new MyArrayAdapter(this, TweetFlowManager.getInstance(this, null).getSavedFilteredRequests());
 		this.setListAdapter(adapter);
 	}
 	
@@ -79,10 +70,10 @@ public class SavedRequestsActivity extends MyListActivity {
                 case FILTER_DIALOG:
 
                 	Iterator<Entry<CharSequence, Boolean>> iter = 
-                		tfm.getDisplayFilter().entrySet().iterator();
+                		TweetFlowManager.getInstance(this, null).getDisplayFilter().entrySet().iterator();
                     
-                	CharSequence[] types = new CharSequence[tfm.getDisplayFilter().size()];
-                	boolean[] checkedItems = new boolean[tfm.getDisplayFilter().size()];
+                	CharSequence[] types = new CharSequence[TweetFlowManager.getInstance(this, null).getDisplayFilter().size()];
+                	boolean[] checkedItems = new boolean[TweetFlowManager.getInstance(this, null).getDisplayFilter().size()];
                 	int i=0;
                 	while(iter.hasNext()) {
                 		Entry<CharSequence, Boolean> e = iter.next();
@@ -106,10 +97,10 @@ public class SavedRequestsActivity extends MyListActivity {
                                 public void onClick(DialogInterface dialog, int whichButton) {
                                    
                                    for (int j = 0; j < fCheckedItems.length; j++) {
-                                	   tfm.getDisplayFilter().put(fTypes[j], 
+                                	   TweetFlowManager.getInstance(SavedRequestsActivity.this, null).getDisplayFilter().put(fTypes[j], 
                                 			   new Boolean(fCheckedItems[j]));
                                    }
-                                   tfm.loadSavedRequests();
+                                   TweetFlowManager.getInstance(SavedRequestsActivity.this, null).loadSavedRequests();
                                    adapter.notifyDataSetChanged();
                                 }
                             }).setNegativeButton("Cancel",
@@ -118,6 +109,28 @@ public class SavedRequestsActivity extends MyListActivity {
                                         int whichButton) {
                                 }
                             }).create();
+                    
+                case DELETE_ID:
+                	
+                	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            		builder.setMessage("Are you sure you want to delete all saved requests?")
+            		       .setCancelable(false)
+            		       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            		           public void onClick(DialogInterface dialog, int id) {
+            		        	   TweetFlowManager.getInstance(SavedRequestsActivity.this, null)
+            		        	   .deleteSavedRequests();    		
+            		       			adapter.notifyDataSetChanged();    		
+            		       			Toast.makeText(SavedRequestsActivity.this, 
+            		       					"All saved Requests deleted!", Toast.LENGTH_LONG).show();
+            		           }
+            		       })
+            		       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+            		           public void onClick(DialogInterface dialog, int id) {
+            		                dialog.cancel();
+            		           }
+            		       });
+            		AlertDialog alert = builder.create();
+            		return alert;
         }
         return null;
     }
@@ -134,13 +147,7 @@ public class SavedRequestsActivity extends MyListActivity {
         switch(item.getItemId()) {
     	case DELETE_ID:
     		
-    		tfm.deleteSavedRequests();
-    		
-    		adapter.notifyDataSetChanged();
-    		
-    		Toast.makeText(this, "All saved Requests deleted!", Toast.LENGTH_LONG)
-			.show();
-    		
+    		showDialog(DELETE_ID);
     		return true;
     	}
         

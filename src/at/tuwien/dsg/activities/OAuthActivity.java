@@ -1,7 +1,5 @@
 package at.tuwien.dsg.activities;
 
-import org.json.JSONObject;
-
 import junit.framework.Assert;
 import oauth.signpost.OAuth;
 import oauth.signpost.OAuthConsumer;
@@ -13,17 +11,13 @@ import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.exception.OAuthNotAuthorizedException;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import at.tuwien.dsg.R;
 import at.tuwien.dsg.common.ConnectionManager;
-import at.tuwien.dsg.common.ConnectionManager.TimelineSelector;
 
 public class OAuthActivity extends Activity {
 	private static final String TAG = "OAuthActivity";

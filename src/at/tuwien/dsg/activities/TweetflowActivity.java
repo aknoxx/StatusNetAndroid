@@ -1,12 +1,10 @@
 package at.tuwien.dsg.activities;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -14,35 +12,24 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.markupartist.android.widget.ActionBar;
-import com.markupartist.android.widget.ActionBar.AbstractAction;
-import com.markupartist.android.widget.ActionBar.Action;
-import com.markupartist.android.widget.ActionBar.IntentAction;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.RemoteException;
-import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.widget.LinearLayout;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import at.tuwien.dsg.R;
 import at.tuwien.dsg.common.ConnectionManager;
 import at.tuwien.dsg.common.Request.Conditions;
@@ -52,11 +39,13 @@ import at.tuwien.dsg.common.Request.Variables;
 import at.tuwien.dsg.common.TweetFlowManager;
 import at.tuwien.dsg.entities.DisplayData;
 import at.tuwien.dsg.entities.Network;
-import at.tuwien.dsg.entities.Request;
 
-public class TweetflowActivity extends MyListActivity {// extends ActionBarActivity {
-	
-	private static LinearLayout container;
+import com.markupartist.android.widget.ActionBar;
+import com.markupartist.android.widget.ActionBar.AbstractAction;
+import com.markupartist.android.widget.ActionBar.Action;
+import com.markupartist.android.widget.ActionBar.IntentAction;
+
+public class TweetflowActivity extends MyListActivity {
 	
 	private static final int SAVE_ID = Menu.FIRST;
 	private static final int RESET_ID = Menu.FIRST + 3;	
@@ -64,15 +53,8 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 	private static final int CONTEXT_DELETE_REQUEST_ID = Menu.FIRST + 5;
 		
 	private static final int FILTER_DIALOG = 4;	
-	
-	private TweetFlowManager tfm;
+
 	private MyArrayAdapter adapter;
-	private Request[] rs;
-	private ArrayList<Request> requestTimeline;
-	
-	// Global mutable variables
-    private Uri mUri;
-    private Cursor mCursor;
     
     private ContentProviderClient requestsProvider;
     private ContentProviderClient hashTagsProvider;
@@ -89,8 +71,6 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 	
 	public static final String TF_MANAGER_FILE = "TFManagerFile";
 	private static final String CONNECTION_MANAGER_FILE = "ConnectionManagerFile";
-	
-	private Menu menu;
 	
 	/** Called when the activity is first created. */
 	public void onCreate(Bundle icicle) {
@@ -127,7 +107,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 		} catch (Exception e) {
 			dd = null;
 		}		
-		tfm = TweetFlowManager.getInstance(this, dd);
+		TweetFlowManager.getInstance(this, dd);
 		
 		Network n;
 		try {
@@ -149,7 +129,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 		conditionsProvider = getContentResolver().acquireContentProviderClient(Conditions.CONTENT_URI);
 		variablesProvider = getContentResolver().acquireContentProviderClient(Variables.CONTENT_URI);
 		
-		adapter = new MyArrayAdapter(this, tfm.getFilteredRequests());
+		adapter = new MyArrayAdapter(this, TweetFlowManager.getInstance(this, null).getFilteredRequests());
 		this.setListAdapter(adapter);
 		
 		registerForContextMenu(listView);
@@ -164,7 +144,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 
 		loggedIn = mSettings.getBoolean(ConnectionManager.LOGGEDIN, false);
 		if(!loggedIn) {
-			tfm.clearRequestList();
+			TweetFlowManager.getInstance(this, null).clearRequestList();
 			adapter.notifyDataSetChanged();
 			
 			if(mConnectionManager.getKeysAvailable()) {
@@ -198,7 +178,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 		try {
 			fos = openFileOutput(TF_MANAGER_FILE, Context.MODE_PRIVATE);
 			out = new ObjectOutputStream(fos);
-			out.writeObject(tfm.getDd());
+			out.writeObject(TweetFlowManager.getInstance(this, null).getDd());
 			out.close();
 		} catch(IOException ex) {
 			ex.printStackTrace();
@@ -267,7 +247,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 				true,	// indeterminate duration
 				false); // not cancel-able
 			
-			newestId = tfm.getNewestReceivedId();
+			newestId = TweetFlowManager.getInstance(TweetflowActivity.this, null).getNewestReceivedId();
 			if(newestId == 0) {
 				newestId = null;
 			}
@@ -278,19 +258,21 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 			JSONArray array;
 			if(newestId == null) {
 				for (int i = 0; i < 5; i++) {
-					ts = mConnectionManager.new TimelineSelector(
+					ts = ConnectionManager.getInstance(getApplicationContext()).new TimelineSelector(
 							ConnectionManager.getInstance(getApplicationContext()).getUrls()
 							.getHomeTimelineUrlString(),
 								newestId, null, null, i+1);
 					
-					array = mConnectionManager.getTimeline(ts);
+					array =  ConnectionManager.getInstance(getApplicationContext())
+								.getTimeline(ts);
 					
 					if(array != null) {
 						try {
 							for(int j = array.length()-1; j >=0 ; j--) {
 								JSONObject status = array.getJSONObject(j);
-								ConnectionManager.UserStatus s = mConnectionManager.new UserStatus(status);
-								tfm.addUserStatus(s);
+								ConnectionManager.UserStatus s =  ConnectionManager.getInstance(getApplicationContext())
+											.new UserStatus(status);
+								TweetFlowManager.getInstance(TweetflowActivity.this, null).addUserStatus(s);
 							}						
 							
 						} catch (JSONException e) {
@@ -300,19 +282,21 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 				}
 			}
 			else {
-				ts = mConnectionManager.new TimelineSelector(
+				ts =  ConnectionManager.getInstance(getApplicationContext()).new TimelineSelector(
 						ConnectionManager.getInstance(getApplicationContext()).getUrls()
 						.getHomeTimelineUrlString(),
 							newestId, null, null, null);
 				
-				array = mConnectionManager.getTimeline(ts);
+				array =  ConnectionManager.getInstance(getApplicationContext())
+						.getTimeline(ts);
 				
 				if(array != null) {
 					try {
 						for(int j = array.length()-1; j >=0 ; j--) {
 							JSONObject status = array.getJSONObject(j);
-							ConnectionManager.UserStatus s = mConnectionManager.new UserStatus(status);
-							tfm.addUserStatus(s);
+							ConnectionManager.UserStatus s = ConnectionManager
+								.getInstance(getApplicationContext()).new UserStatus(status);
+							TweetFlowManager.getInstance(TweetflowActivity.this, null).addUserStatus(s);
 						}						
 						
 					} catch (JSONException e) {
@@ -347,11 +331,6 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 
         @Override
         public void performAction(View view) {
-//        	tfm.downloadNewTweets();
-//        	adapter.notifyDataSetChanged();
-//        	ConnectionManager.TimelineSelector ss = 
-//        		mConnectionManager.new TimelineSelector(ConnectionManager.getInstance(getApplicationContext()).getUrls().getHomeTimelineUrlString(),
-//        				tfm.getNewestReceivedId(), null, null, null);
         	new GetTimelineWithProgressTask().execute();
         }
     }
@@ -367,22 +346,10 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
         	showDialog(FILTER_DIALOG);
         }
     }
-
-/*
-	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
-		super.onListItemClick(l, v, position, id);
-		// Get the item that was clicked
-		Object o = this.getListAdapter().getItem(position);
-		String keyword = o.toString();
-		Toast.makeText(this, "You selected: " + keyword, Toast.LENGTH_LONG)
-				.show();
-	}
-	*/
+	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        this.menu = menu;
         menu.add(0, SAVE_ID, 0, "Save requests");
         menu.add(0, CLEAR_ID, 2, "Clear request list");
         menu.add(0, RESET_ID, 4, "Reset receiver");
@@ -394,9 +361,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
         switch(item.getItemId()) {
         case SAVE_ID:        
         	
-        	if(tfm.saveRequests()) {
-        		// update: eg. displayed state
-        		//tfm.loadFilteredRequests();
+        	if(TweetFlowManager.getInstance(this, null).saveRequests()) {
         		adapter.notifyDataSetChanged();
         		
         		Toast.makeText(this, "Requests saved successfully!", Toast.LENGTH_LONG)
@@ -410,13 +375,13 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 	        return true;
     	case CLEAR_ID:
     		
-    		tfm.clearRequestList();
+    		TweetFlowManager.getInstance(this, null).clearRequestList();
     		adapter.notifyDataSetChanged();
     		
     		return true;
     	case RESET_ID:
     		
-    		tfm.resetIds();
+    		TweetFlowManager.getInstance(this, null).resetIds();
     		
     		return true;
     	}
@@ -437,7 +402,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
     	case CONTEXT_DELETE_REQUEST_ID:
     		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 
-	       	tfm.deleteRequest((int)info.position);;
+    		TweetFlowManager.getInstance(this, null).deleteRequest((int)info.position);;
 	       	adapter.notifyDataSetChanged();
 	       	
 	       	Toast.makeText(this, "Request deleted successfully!", Toast.LENGTH_LONG)
@@ -447,65 +412,6 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 		}
 		return super.onContextItemSelected(item);
 	}
-    
-    
-    private class LoadDataTask extends AsyncTask<Void, Void, ArrayList<Request>> {
-    	 
-		ProgressDialog retrieveDialog;
- 
-		@Override
-		protected void onPreExecute() {
-			retrieveDialog = ProgressDialog.show(TweetflowActivity.this, 
-				getText(R.string.request_progress_title), 
-				getText(R.string.request_progress_text), 
-				true,	// indeterminate duration
-				false); // not cancel-able
-		}
- 
-		@Override
-		protected ArrayList<Request> doInBackground(Void... arg0) {
-			tfm.loadSavedRequests();
-			return tfm.loadFilteredRequests();
-		}
- 
-		// This is in the UI thread, so we can mess with the UI
-		protected void onPostExecute(ArrayList<Request> req) {
-			retrieveDialog.dismiss();
-			adapter.notifyDataSetChanged();
-		}
-	}
-    
-    private class LoadDataContentProviderTask extends AsyncTask<ContentProviderClient, Void, Boolean> {
-   	 
-		ProgressDialog retrieveDialog;
- 
-		@Override
-		protected void onPreExecute() {
-			retrieveDialog = ProgressDialog.show(TweetflowActivity.this, 
-				getText(R.string.request_progress_title), 
-				getText(R.string.request_progress_text), 
-				true,	// indeterminate duration
-				false); // not cancel-able
-		}
- 
-		@Override
-		protected Boolean doInBackground(ContentProviderClient... params) {
-			try {
-				return tfm.loadRequestsFromContentProvider(params[0], params[1], params[2], params[3]);
-			} catch (RemoteException e) {
-				return false;
-			}
-		}
- 
-		// This is in the UI thread, so we can mess with the UI
-		protected void onPostExecute(Boolean req) {
-			retrieveDialog.dismiss();
-			if(!req) {
-				Toast.makeText(TweetflowActivity.this, "Error loading data!", Toast.LENGTH_SHORT).show();
-			}
-			adapter.notifyDataSetChanged();
-		}
-	}
 
     @Override
     protected Dialog onCreateDialog(int id) {
@@ -514,10 +420,10 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
                 case FILTER_DIALOG:
 
                 	Iterator<Entry<CharSequence, Boolean>> iter = 
-                		tfm.getDisplayFilter().entrySet().iterator();
+                		TweetFlowManager.getInstance(this, null).getDisplayFilter().entrySet().iterator();
                     
-                	CharSequence[] types = new CharSequence[tfm.getDisplayFilter().size()];
-                	boolean[] checkedItems = new boolean[tfm.getDisplayFilter().size()];
+                	CharSequence[] types = new CharSequence[TweetFlowManager.getInstance(this, null).getDisplayFilter().size()];
+                	boolean[] checkedItems = new boolean[TweetFlowManager.getInstance(this, null).getDisplayFilter().size()];
                 	int i=0;
                 	while(iter.hasNext()) {
                 		Entry<CharSequence, Boolean> e = iter.next();
@@ -541,10 +447,10 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
                                 public void onClick(DialogInterface dialog, int whichButton) {
                                    
                                    for (int j = 0; j < fCheckedItems.length; j++) {
-                                	   tfm.getDisplayFilter().put(fTypes[j], 
+                                	   TweetFlowManager.getInstance(TweetflowActivity.this, null).getDisplayFilter().put(fTypes[j], 
                                 			   new Boolean(fCheckedItems[j]));
                                    }
-                                   tfm.loadFilteredRequests();
+                                   TweetFlowManager.getInstance(TweetflowActivity.this, null).loadFilteredRequests();
                                    adapter.notifyDataSetChanged();
                                 }
                             }).setNegativeButton("Cancel",

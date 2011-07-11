@@ -4,7 +4,7 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 
 /**
- * Convenience definitions for NotePadProvider
+ * Convenience definitions for RequestProvider
  */
 public final class Request {
     public static final String AUTHORITY = "at.tuwien.dsg.provider.RequestProvider";
@@ -23,84 +23,20 @@ public final class Request {
          * The content:// style URL for this table
          */
         public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/requests");
-
-        /**
-         * The MIME type of {@link #CONTENT_URI} providing a directory of notes.
-         */
-        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.google.note";
-
-        /**
-         * The MIME type of a {@link #CONTENT_URI} sub-directory of a single note.
-         */
-        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.google.note";
         
-        /**
-         * The qualifier of the request
-         * <P>Type: TEXT</P>
-         */
         public static final String QUALIFIER = "qualifier";
-
-        /**
-         * The qualifier of the request
-         * <P>Type: TEXT</P>
-         */
         public static final String ADDRESSED_USER_NAME = "addressedUserName";
-        
-        /**
-         * The qualifier of the request
-         * <P>Type: TEXT</P>
-         */
         public static final String OPERATION = "operation";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
-        public static final String SERVICE = "service";
-        
+        public static final String SERVICE = "service"; 
         public static final String OPERATION_EXECUTION_STATUS = "operationExecutionStatus";
-        
-        /**
-         * The qualifier of the request
-         * <P>Type: TEXT</P>
-         */
         public static final String URL = "url";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String COMPLETE_REQUEST_TEXT = "completeRequestText";
-        
-        /**
-         * The qualifier of the request
-         * <P>Type: TEXT</P>
-         */
         public static final String TWEET_ID = "tweetId";
-
-        /**
-         * The qualifier of the request
-         * <P>Type: TEXT</P>
-         */
         public static final String SENDER_NAME = "senderName";
-        
-        /**
-         * The timestamp for when the note was created
-         * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
-         */
-        public static final String CREATED_AT = "createdAt";
-        
-        /**
-         * The timestamp for when the note was created
-         * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
-         */
-        
-        public static final String IS_CLOSED_SEQUENCE = "isClosedSequence";
-        
-        public static final String ORDERING = "ordering";
-        
+        public static final String CREATED_AT = "createdAt";        
+        public static final String IS_CLOSED_SEQUENCE = "isClosedSequence";      
+        public static final String ORDERING = "ordering";   
         public static final String DEPENDENT_ON_TWEETID = "dependentOnTweetId";
-        
         public static final String DEPENDENT_ON_NUMBER = "dependentOnNumber";
         
         /**
@@ -114,36 +50,11 @@ public final class Request {
     	// This class cannot be instantiated
         private HashTags() {}
 
-        /**
-         * The content:// style URL for this table
-         */
         public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/hashtags");
-
-        /**
-         * The MIME type of {@link #CONTENT_URI} providing a directory of notes.
-         */
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.google.note";
-
-        /**
-         * The MIME type of a {@link #CONTENT_URI} sub-directory of a single note.
-         */
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.google.note";
-
-        /**
-         * The default sort order for this table
-         */
         public static final String DEFAULT_SORT_ORDER = "modified DESC";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String REQUEST_ID = "requestId";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String NAME = "name";
     }
     
@@ -152,38 +63,11 @@ public final class Request {
     	// This class cannot be instantiated
         private Conditions() {}
 
-        /**
-         * The content:// style URL for this table
-         */
         public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/conditions");
-
-        /**
-         * The default sort order for this table
-         */
         public static final String DEFAULT_SORT_ORDER = "modified DESC";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String REQUEST_ID = "requestId";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String USER_NAME = "username";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String VARIABLE = "variable";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String VALUE = "value";
     }
     
@@ -191,33 +75,10 @@ public final class Request {
     	// This class cannot be instantiated
         private Variables() {}
 
-        /**
-         * The content:// style URL for this table
-         */
         public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/variables");
-
-
-        /**
-         * The default sort order for this table
-         */
         public static final String DEFAULT_SORT_ORDER = "modified DESC";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String REQUEST_ID = "requestId";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String NAME = "name";
-        
-        /**
-         * The title of the note
-         * <P>Type: TEXT</P>
-         */
         public static final String VALUE = "value";
     }
 }

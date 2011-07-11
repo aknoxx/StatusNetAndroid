@@ -3,7 +3,6 @@ package at.tuwien.dsg.common;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.MatchResult;
@@ -26,7 +25,7 @@ public class TweetflowFilter {
 		"( @\\w+)?" +		// optional @addressedUser
 		" \\w+\\.\\w+" +	// operation.service
 		"( http://[\\S\\./]+)?" +			// optional url
-		"(\\?\\w+=\\S+(&\\w+=\\S+)+)?" +	// optional querystring
+		"(\\?\\w+=\\S+(&\\w+=\\S+)*)?" +	// optional querystring
 		"( \\[@\\w+\\.\\w+\\?=\\w+\\])?" +	// optional condition
 		"( #\\w+)*" +	// optional #hashtags
 		"( \\|)?" + 	// optional pipe
@@ -39,7 +38,6 @@ public class TweetflowFilter {
 	
 	private final static String operationServiceAlone = " \\S+\\.\\w+";
 	
-	private static Pattern requestPattern;
 	private static Pattern hashTagPattern;
 	private static Pattern urlPattern;
 	private static Pattern userPattern;
@@ -60,18 +58,14 @@ public class TweetflowFilter {
 	private static List<Request> tempRequestList = new ArrayList<Request>();
 	
 	public TweetflowFilter() {
-		requestPattern = Pattern.compile(requestPatternString);
 		hashTagPattern = Pattern.compile("#\\w+");
 		// \S A non-whitespace character: [^\s]
 		// http://[\\S\\./]+
 		// http://[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,3}(/[\\S]+)*
 		urlPattern = Pattern.compile("http://[\\S\\./]+");
 		userPattern = Pattern.compile("@\\w+");
-		// location=Vienna,1020&date=today&time=20:00
+		// e.g.: location=Vienna,1020&date=today&time=20:00
 		queryStringPattern = Pattern.compile("\\?\\w+=\\S+(&\\w+=\\S+)+( )?");
-		
-		// TODO what if no " " nor ? ??
-		//operationServicePattern = Pattern.compile(" \\S+\\.\\w+[ ?]?"); // ending with " " followed by a url or with "?" followed by a querystring
 		
 		// e.g.: " recommend.restaurant?" or " get.Availability "
 		operationServicePattern = Pattern.compile(operationServiceAlone + "[ \\?]");
@@ -160,9 +154,6 @@ public class TweetflowFilter {
 				}	
 				
 				// removing the " " or "?" following the service
-				//request.setService(operationService[1].substring(0, operationService[1].length()-1));
-				
-				// TODO ...?dat=27 wtf????
 				String service = operationService[1].trim();
 				if(service.endsWith("?")) {
 					request.setService(operationService[1].substring(0, operationService[1].length()-1));
@@ -196,10 +187,6 @@ public class TweetflowFilter {
 						}
 					}					
 					
-					// removing the " " or "?" following the service
-					//request.setService(operationService[1].substring(0, operationService[1].length()-1));
-					
-					// TODO ...?dat=27 wtf????
 					String service = operationService[1].trim();
 					request.setService(service);
 					
@@ -225,19 +212,6 @@ public class TweetflowFilter {
 					String[] assignment = arg.split("=");
 					request.getVariables().put(assignment[0], assignment[1]);
 				}
-			}
-			
-			if(request.getQualifier().equals("SR")
-					|| request.getQualifier().equals("SF")) {
-				// TODO 
-				
-				// only url or querystring allowed
-				//if(request.getUrl()==null && request.getVariables().size()==0
-				//		|| request.getUrl()!=null && request.getVariables().size()>0) {
-//				if(request.getUrl()!=null && request.getVariables().size()>0) {
-//					reset();
-//					return null;
-//				}
 			}
 			
 			// e.g. [@ikangai.availability?=true]
@@ -283,13 +257,7 @@ public class TweetflowFilter {
 			}
 			
 			if(closedSequenceStarted) {
-				if(requestText.endsWith("|")) {
-					
-					
-					// TODO tweetId or dbId????? dont know dbId yet and what if both parts in same tweet?
-					// -> tweetId impossible too...
-					// HA! -> do it in TweetFlowManager!!!!
-					
+				if(requestText.endsWith("|")) {					
 					// save tweetId for following requests
 					predecessorWithPipeId = request.getTweetId();
 					if(isMultiRequest) {
@@ -307,18 +275,10 @@ public class TweetflowFilter {
 			
 			
 			tempRequestList.add(request);
-			
-//			results.clear();
-//			results.add(request);
-//			return results;
 		}
 		if(tempRequestList.size() > 0) {
 			results.clear();
-//			if(tempRequestList.get(0).isClosedSequence()) {
-//				for (int i = 0; i < tempRequestList.size(); i++) {
-//					tempRequestList.get(i).setOrdering(i+1);
-//				}
-//			}
+
 			results.addAll(tempRequestList);
 			tempRequestList.clear();
 			return results;
@@ -349,8 +309,7 @@ public class TweetflowFilter {
 			results.clear();
 			results.add(request);
 			return results;
-		}	
-		
+		}		
 		
 		// @user.varname?
 		// Access variable (will be created if not existent)

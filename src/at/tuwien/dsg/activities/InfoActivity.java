@@ -1,12 +1,5 @@
 package at.tuwien.dsg.activities;
 
-import java.io.File;
-
-import com.markupartist.android.widget.ActionBar;
-import com.markupartist.android.widget.ActionBar.Action;
-import com.markupartist.android.widget.ActionBar.IntentAction;
-
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,6 +11,10 @@ import android.widget.TextView;
 import at.tuwien.dsg.R;
 import at.tuwien.dsg.common.ConnectionManager;
 import at.tuwien.dsg.common.TweetFlowManager;
+
+import com.markupartist.android.widget.ActionBar;
+import com.markupartist.android.widget.ActionBar.Action;
+import com.markupartist.android.widget.ActionBar.IntentAction;
 
 public class InfoActivity extends MyActivity {
 
@@ -47,17 +44,14 @@ public class InfoActivity extends MyActivity {
 		btnLogout.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-            	
-            	// TODO: do logout stuff
+
+            	// logout user
             	mSettingsEditor.putBoolean(ConnectionManager.LOGGEDIN, false);
 				mSettingsEditor.commit();
 				
 				tfm = TweetFlowManager.getInstance(getApplicationContext(), null);
 				tfm.clearRequestList();
 				tfm.resetIds();
-				
-				//File file = new File(TweetflowActivity.TF_MANAGER_FILE);
-				//file.delete();
             	
             	ConnectionManager.getInstance(getApplicationContext()).logout();
             	
