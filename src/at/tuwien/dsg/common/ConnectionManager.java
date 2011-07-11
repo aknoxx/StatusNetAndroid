@@ -40,8 +40,8 @@ import at.tuwien.dsg.entities.Network;
 import at.tuwien.dsg.entities.Urls;
 
 
-public class ConnManager {
-	private static final String TAG = "ConnManager";
+public class ConnectionManager {
+	private static final String TAG = "ConnectionManager";
 	
 	
 	private static Network currentNetwork; 
@@ -64,16 +64,16 @@ public class ConnManager {
 	
 	HttpClient mClient;
 	
-	private static ConnManager instance = null;
+	private static ConnectionManager instance = null;
 	
-	public static ConnManager getInstance(Context ctx) {
+	public static ConnectionManager getInstance(Context ctx) {
 		if(instance == null) {
-			instance = new ConnManager(ctx);
+			instance = new ConnectionManager(ctx);
 		}
 		return instance;
 	}
 	
-	private ConnManager(Context ctx) {
+	private ConnectionManager(Context ctx) {
 		this.ctx = ctx;
 		
 		HttpParams parameters = new BasicHttpParams();
@@ -187,8 +187,8 @@ public class ConnManager {
 			e.printStackTrace();
 		}
 		
-		SharedPreferences.Editor editor = mSettings.edit();
-		editor.putBoolean(LOGGEDIN, true);
+//		SharedPreferences.Editor editor = mSettings.edit();
+//		editor.putBoolean(LOGGEDIN, true);
 		return jso;
 	}
 	

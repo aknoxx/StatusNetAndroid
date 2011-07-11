@@ -280,7 +280,7 @@ public class RequestDbAdapter {
 		return null;
 	}
 	
-	public List<at.tuwien.dsg.entities.Request> loadAllRequests() {
+	public List<at.tuwien.dsg.entities.Request> loadAllSavedRequests() {
 		List<at.tuwien.dsg.entities.Request> requests = new ArrayList<at.tuwien.dsg.entities.Request>();
 		
 		String[] requestSelection = 
@@ -324,7 +324,7 @@ public class RequestDbAdapter {
 			};
 		
 		Cursor rc =  mDb.query(REQUEST_TABLE_NAME, 
-				requestSelection, null, null, null, null, null);
+				requestSelection, null, null, null, null, Requests.DEFAULT_SORT_ORDER);
 
 		if(rc != null) {
 			if(rc.getCount() > 0) {

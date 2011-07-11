@@ -1,5 +1,6 @@
 package at.tuwien.dsg.activities;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,7 +44,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import at.tuwien.dsg.R;
-import at.tuwien.dsg.common.ConnManager;
+import at.tuwien.dsg.common.ConnectionManager;
 import at.tuwien.dsg.common.Request.Conditions;
 import at.tuwien.dsg.common.Request.HashTags;
 import at.tuwien.dsg.common.Request.Requests;
@@ -58,12 +59,10 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 	private static LinearLayout container;
 	
 	private static final int SAVE_ID = Menu.FIRST;
-	private static final int DELETE_ID = Menu.FIRST + 2;
 	private static final int RESET_ID = Menu.FIRST + 3;	
 	private static final int CLEAR_ID = Menu.FIRST + 4;
 	private static final int CONTEXT_DELETE_REQUEST_ID = Menu.FIRST + 5;
-	
-	
+		
 	private static final int FILTER_DIALOG = 4;	
 	
 	private TweetFlowManager tfm;
@@ -81,13 +80,14 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
     private ContentProviderClient variablesProvider;
 	
 	private ActionBar actionBar;
-	private ConnManager mConnManager;
+	private ConnectionManager mConnectionManager;
 	
 	private SharedPreferences mSettings;
+	private SharedPreferences.Editor mSettingsEditor;
 	
 	private boolean loggedIn = false;
 	
-	private static final String TF_MANAGER_FILE = "TFManagerFile";
+	public static final String TF_MANAGER_FILE = "TFManagerFile";
 	private static final String CONNECTION_MANAGER_FILE = "ConnectionManagerFile";
 	
 	private Menu menu;
@@ -100,7 +100,10 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 		setContentView(R.layout.request_view);
 		actionBar = (ActionBar) findViewById(R.id.actionbar);
 		
-		actionBar.setTitle("Requests");
+		final Action requestsIntentAction = new IntentAction(this, new Intent(this, TweetflowActivity.class), R.drawable.ic_title_home_default);
+		actionBar.setHomeAction(requestsIntentAction);		
+		actionBar.setTitle("Home");
+		
 		final Action infoIntentAction = new IntentAction(this, new Intent(this, InfoActivity.class), R.drawable.info);
 		final Action viewSavedRequestsIntentAction = new IntentAction(this, new Intent(this, SavedRequestsActivity.class), R.drawable.lock);
 		
@@ -111,6 +114,8 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 		
 		ListView listView = getListView();
 		
+		// try to restore data from last session
+		// create new objects otherwise
 		FileInputStream fis = null;
 		ObjectInputStream in = null;
 		DisplayData dd;		
@@ -134,9 +139,9 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 			n = null;
 		}	
 		if(n != null) {
-			ConnManager.restartConnectionManagerWithNewNetwork(n);
+			ConnectionManager.restartConnectionManagerWithNewNetwork(n);
 		}		
-		mConnManager = ConnManager.getInstance(this);
+		mConnectionManager = ConnectionManager.getInstance(this);
 		
 		// Get Content Providers
 		requestsProvider = getContentResolver().acquireContentProviderClient(Requests.CONTENT_URI);
@@ -150,15 +155,19 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 		registerForContextMenu(listView);
 		
 		mSettings = getSharedPreferences(OAuthActivity.PREFS, Context.MODE_PRIVATE);
+		mSettingsEditor = mSettings.edit();
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
 
-		loggedIn = mSettings.getBoolean(ConnManager.LOGGEDIN, false);
+		loggedIn = mSettings.getBoolean(ConnectionManager.LOGGEDIN, false);
 		if(!loggedIn) {
-			if(mConnManager.getKeysAvailable()) {
+			tfm.clearRequestList();
+			adapter.notifyDataSetChanged();
+			
+			if(mConnectionManager.getKeysAvailable()) {
 				new GetCredentialsTask().execute();
 			}
 			else {
@@ -167,11 +176,16 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 			}
 		}
 		else {
-			ConnManager.TimelineSelector ss = 
-				mConnManager.new TimelineSelector(ConnManager.getInstance(this).getUrls().getHomeTimelineUrlString(),
-        				//tfm.getNewestReceivedId(), null, null, null);
-						null, null, null, null);
-			new GetTimelineWithProgressTask().execute(ss);
+//			Long newestId = tfm.getNewestReceivedId();
+//			if(newestId == 0) {
+//				newestId = null;
+//			}
+//			
+//			ConnectionManager.TimelineSelector ss = 
+//				mConnectionManager.new TimelineSelector(ConnectionManager.getInstance(getApplicationContext()).getUrls().getHomeTimelineUrlString(),
+//						newestId, null, null, null);
+			
+			new GetTimelineWithProgressTask().execute();
 		}
 	}
 	
@@ -192,7 +206,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 		try {
 			fos = openFileOutput(CONNECTION_MANAGER_FILE, Context.MODE_PRIVATE);
 			out = new ObjectOutputStream(fos);
-			out.writeObject(mConnManager.getCurrentNetwork());
+			out.writeObject(mConnectionManager.getCurrentNetwork());
 			out.close();
 		} catch(IOException ex) {
 			ex.printStackTrace();
@@ -202,7 +216,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 	public void onFinish() {
 		super.onFinish();
 		
-		mConnManager.shutdownConnectionManager();
+		mConnectionManager.shutdownConnectionManager();
 	}
 	
 	//----------------------------
@@ -223,25 +237,27 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 		
 		@Override
 		protected JSONObject doInBackground(Void... arg0) {
-			return mConnManager.getCredentials();
+			return mConnectionManager.getCredentials();
 		}
 		
 		// This is in the UI thread, so we can mess with the UI
 		protected void onPostExecute(JSONObject jso) {
 			authDialog.dismiss();
 			if(jso != null) {
-				ConnManager.TimelineSelector ss = 
-					mConnManager.new TimelineSelector(ConnManager.getInstance(getApplicationContext()).getUrls().getHomeTimelineUrlString(),
-	        				//tfm.getNewestReceivedId(), null, null, null);
-							null, null, null, null);
-				new GetTimelineWithProgressTask().execute(ss);
+				// now we are definitly "logged in"
+				mSettingsEditor.putBoolean(ConnectionManager.LOGGEDIN, true);
+				mSettingsEditor.commit();
+				
+				new GetTimelineWithProgressTask().execute();
 			}
 		}
 	}
 	
-	private class GetTimelineWithProgressTask extends AsyncTask<ConnManager.TimelineSelector, Void, JSONArray> {
+	private class GetTimelineWithProgressTask extends AsyncTask<Void, Void, Boolean> {
 		
 		ProgressDialog retrieveDialog;
+		ConnectionManager.TimelineSelector ts;
+		Long newestId;
 		 
 		@Override
 		protected void onPreExecute() {
@@ -250,33 +266,55 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 				getText(R.string.request_progress_text), 
 				true,	// indeterminate duration
 				false); // not cancel-able
+			
+			newestId = tfm.getNewestReceivedId();
+			if(newestId == 0) {
+				newestId = null;
+			}
 		}
 		
 		@Override
-		protected JSONArray doInBackground(ConnManager.TimelineSelector... params) {
-			return mConnManager.getTimeline(params[0]);
+		protected Boolean doInBackground(Void... params) {
+			JSONArray array;
+			if(newestId == null) {
+				for (int i = 0; i < 5; i++) {
+					ts = mConnectionManager.new TimelineSelector(
+							ConnectionManager.getInstance(getApplicationContext()).getUrls()
+							.getHomeTimelineUrlString(),
+								newestId, null, null, i+1);
+					array = mConnectionManager.getTimeline(ts);
+					
+					if(array != null) {
+						try {
+							for(int j = array.length()-1; j >=0 ; j--) {
+								JSONObject status = array.getJSONObject(j);
+								ConnectionManager.UserStatus s = mConnectionManager.new UserStatus(status);
+								tfm.addUserStatus(s);
+							}						
+							
+						} catch (JSONException e) {
+							return false;
+						}
+					}
+				}
+			}
+			return true;
 		}
 		
 		// This is in the UI thread, so we can mess with the UI
-		protected void onPostExecute(JSONArray array) {
-			if(array != null) {
-				try {
-					for(int i = array.length()-1; i >=0 ; i--) {
-						JSONObject status = array.getJSONObject(i);
-						ConnManager.UserStatus s = mConnManager.new UserStatus(status);
-						tfm.addUserStatus(s);
-					}
-					retrieveDialog.dismiss();
-					adapter.notifyDataSetChanged();
-					
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-			} else {
+		protected void onPostExecute(Boolean result) {
+			
+			if(result) {
+				retrieveDialog.dismiss();
+				adapter.notifyDataSetChanged();
+			}
+			else {
 				retrieveDialog.dismiss();
 				Toast.makeText(TweetflowActivity.this, "Could not retrieve new Requests!", Toast.LENGTH_SHORT);
 			}
 		}
+
+		
 	}
 	
 	private class RefreshAction extends AbstractAction {
@@ -289,10 +327,10 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
         public void performAction(View view) {
 //        	tfm.downloadNewTweets();
 //        	adapter.notifyDataSetChanged();
-        	ConnManager.TimelineSelector ss = 
-        		mConnManager.new TimelineSelector(ConnManager.getInstance(getApplicationContext()).getUrls().getHomeTimelineUrlString(),
-        				tfm.getNewestReceivedId(), null, null, null);
-        	new GetTimelineWithProgressTask().execute(ss);
+//        	ConnectionManager.TimelineSelector ss = 
+//        		mConnectionManager.new TimelineSelector(ConnectionManager.getInstance(getApplicationContext()).getUrls().getHomeTimelineUrlString(),
+//        				tfm.getNewestReceivedId(), null, null, null);
+        	new GetTimelineWithProgressTask().execute();
         }
     }
 	
@@ -325,7 +363,6 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
         this.menu = menu;
         menu.add(0, SAVE_ID, 0, "Save requests");
         menu.add(0, CLEAR_ID, 2, "Clear request list");
-        menu.add(0, DELETE_ID, 3, "Delete saved requests");
         menu.add(0, RESET_ID, 4, "Reset receiver");
         return true;
     }
@@ -353,15 +390,6 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
     		
     		tfm.clearRequestList();
     		adapter.notifyDataSetChanged();
-    		
-    		return true;
-    	case DELETE_ID:
-    		
-    		tfm.deleteSavedRequests();
-    		adapter.notifyDataSetChanged();
-    		
-    		Toast.makeText(this, "All saved Requests deleted!", Toast.LENGTH_LONG)
-			.show();
     		
     		return true;
     	case RESET_ID:
@@ -414,7 +442,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
  
 		@Override
 		protected ArrayList<Request> doInBackground(Void... arg0) {
-			tfm.loadRequestsFromDb();
+			tfm.loadSavedRequests();
 			return tfm.loadFilteredRequests();
 		}
  
@@ -515,16 +543,21 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
     
     final String[] REQUEST_PROJECTION = 
 		new String[] { 
-			Requests._ID,
+    		Requests._ID,
 			Requests.QUALIFIER,
 			Requests.ADDRESSED_USER_NAME,
 			Requests.OPERATION,
+			Requests.OPERATION_EXECUTION_STATUS,
 			Requests.SERVICE,
 			Requests.URL,
 			Requests.COMPLETE_REQUEST_TEXT,
 			Requests.TWEET_ID,
 			Requests.SENDER_NAME,
-			Requests.CREATED_AT
+			Requests.CREATED_AT,
+			Requests.IS_CLOSED_SEQUENCE,
+			Requests.DEPENDENT_ON_TWEETID,
+			Requests.ORDERING,
+			Requests.DEPENDENT_ON_NUMBER
 		};
 	
 	final String[] HASHTAG_PROJECTION = 

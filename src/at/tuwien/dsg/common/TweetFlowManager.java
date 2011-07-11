@@ -119,7 +119,7 @@ public class TweetFlowManager{
 	
 	public ArrayList<Request> loadRequests() {
 		dd.getRequests().clear();
-		dd.getRequests().addAll(dbAdapter.loadAllRequests());
+		dd.getRequests().addAll(dbAdapter.loadAllSavedRequests());
 		return dd.getRequests();
 	}
 	
@@ -269,11 +269,24 @@ public class TweetFlowManager{
 		return new ArrayList<Request>();
 	}
 	
-	public void addUserStatus(ConnManager.UserStatus status) {
+	public void addUserStatus(ConnectionManager.UserStatus status) {
 		List<Request> requests;
 		if((requests = extractRequestFromUserStatus(status)) != null) {
+			
 			for (Request r : requests) {
-				dd.getRequests().add(0, r);
+				if(dd.getRequests().isEmpty()) {
+					dd.getRequests().add(r);
+				}
+				else {
+					if(r.getCreatedAt().getTime() 
+							>= dd.getRequests().get(0).getCreatedAt().getTime()) {
+						dd.getRequests().add(0, r);
+					}
+					else {
+						dd.getRequests().add(r);
+					}
+				}
+				
 				dd.setNewestReceivedId(status.getId());
 			}			
 			refreshFilteredRequests();
@@ -282,7 +295,7 @@ public class TweetFlowManager{
 	
 	private Long predecessorTweetId = null;
 	
-	public List<Request> extractRequestFromUserStatus(ConnManager.UserStatus status) {
+	public List<Request> extractRequestFromUserStatus(ConnectionManager.UserStatus status) {
 		try {
 			List<Request> requests = tfFilter.extractRequestFromUserStatus(status);
 //			if(requests != null) {
@@ -311,9 +324,9 @@ public class TweetFlowManager{
 		dd.setNewestSavedId(new Long(0));
 	}
 
-	public void loadRequestsFromDb() {
+	public void loadSavedRequests() {
 		List<Request> rs;
-		if((rs = dbAdapter.loadAllRequests()) != null) {
+		if((rs = dbAdapter.loadAllSavedRequests()) != null) {
 			dd.getSavedRequests().addAll(rs);
 		}
 		refreshFilteredSavedRequests();		

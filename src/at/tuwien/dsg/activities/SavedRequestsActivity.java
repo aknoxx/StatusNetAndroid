@@ -14,9 +14,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 import at.tuwien.dsg.R;
-import at.tuwien.dsg.common.ConnManager;
+import at.tuwien.dsg.common.ConnectionManager;
 import at.tuwien.dsg.common.TweetFlowManager;
 
 import com.markupartist.android.widget.ActionBar;
@@ -28,8 +31,10 @@ public class SavedRequestsActivity extends MyListActivity {
 	
 	private static final int FILTER_DIALOG = 4;	
 	
+	private static final int DELETE_ID = Menu.FIRST + 1;
+	
 	private ActionBar actionBar;
-	private ConnManager mConnManager;
+	private ConnectionManager mConnManager;
 	
 	private TweetFlowManager tfm;
 	private MyArrayAdapter adapter;
@@ -41,16 +46,16 @@ public class SavedRequestsActivity extends MyListActivity {
 		setContentView(R.layout.request_view);
 		actionBar = (ActionBar) findViewById(R.id.actionbar);
 		
-		actionBar.setTitle("View saved Requests");
+		final Action requestsIntentAction = new IntentAction(this, new Intent(this, TweetflowActivity.class), R.drawable.ic_title_home_default);
+		actionBar.setHomeAction(requestsIntentAction);		
+		actionBar.setTitle("Saved Requests");
 		final Action infoIntentAction = new IntentAction(this, new Intent(this, InfoActivity.class), R.drawable.info);
-		final Action requestsIntentAction = new IntentAction(this, new Intent(this, TweetflowActivity.class), R.drawable.requests);
 		       
 		actionBar.addAction(new FilterAction());
-		actionBar.addAction(requestsIntentAction);
 		actionBar.addAction(infoIntentAction);
 		
 		tfm = TweetFlowManager.getInstance(this, null);
-		tfm.loadRequestsFromDb();
+		tfm.loadSavedRequests();
 		adapter = new MyArrayAdapter(this, tfm.getSavedFilteredRequests());
 		this.setListAdapter(adapter);
 	}
@@ -104,7 +109,7 @@ public class SavedRequestsActivity extends MyListActivity {
                                 	   tfm.getDisplayFilter().put(fTypes[j], 
                                 			   new Boolean(fCheckedItems[j]));
                                    }
-                                   tfm.loadRequestsFromDb();
+                                   tfm.loadSavedRequests();
                                    adapter.notifyDataSetChanged();
                                 }
                             }).setNegativeButton("Cancel",
@@ -115,5 +120,29 @@ public class SavedRequestsActivity extends MyListActivity {
                             }).create();
         }
         return null;
+    }
+	
+	@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        menu.add(0, DELETE_ID, 1, "Delete saved requests");
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        switch(item.getItemId()) {
+    	case DELETE_ID:
+    		
+    		tfm.deleteSavedRequests();
+    		adapter.notifyDataSetChanged();
+    		
+    		Toast.makeText(this, "All saved Requests deleted!", Toast.LENGTH_LONG)
+			.show();
+    		
+    		return true;
+    	}
+        
+        return super.onMenuItemSelected(featureId, item);
     }
 }

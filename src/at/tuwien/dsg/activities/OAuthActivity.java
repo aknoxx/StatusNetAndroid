@@ -1,5 +1,7 @@
 package at.tuwien.dsg.activities;
 
+import org.json.JSONObject;
+
 import junit.framework.Assert;
 import oauth.signpost.OAuth;
 import oauth.signpost.OAuthConsumer;
@@ -11,13 +13,17 @@ import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.exception.OAuthNotAuthorizedException;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import at.tuwien.dsg.common.ConnManager;
+import at.tuwien.dsg.R;
+import at.tuwien.dsg.common.ConnectionManager;
+import at.tuwien.dsg.common.ConnectionManager.TimelineSelector;
 
 public class OAuthActivity extends Activity {
 	private static final String TAG = "OAuthActivity";
@@ -41,13 +47,13 @@ public class OAuthActivity extends Activity {
 	
 		// We don't need to worry about any saved states: we can reconstruct the state
 		mConsumer = new CommonsHttpOAuthConsumer(
-				ConnManager.getInstance(this).getCurrentNetwork().getConsumerKey(),
-				ConnManager.getInstance(this).getCurrentNetwork().getConsumerSecret());
+				ConnectionManager.getInstance(this).getCurrentNetwork().getConsumerKey(),
+				ConnectionManager.getInstance(this).getCurrentNetwork().getConsumerSecret());
 		
 		mProvider = new CommonsHttpOAuthProvider (
-				ConnManager.getInstance(this).getUrls().getRequestTokenUrl(),
-				ConnManager.getInstance(this).getUrls().getAccessTokenUrl(),
-				ConnManager.getInstance(this).getUrls().getAuthorizeUrl());
+				ConnectionManager.getInstance(this).getUrls().getRequestTokenUrl(),
+				ConnectionManager.getInstance(this).getUrls().getAccessTokenUrl(),
+				ConnectionManager.getInstance(this).getUrls().getAuthorizeUrl());
 		
 		// It turns out this was the missing thing to making standard Activity launch mode work
 		mProvider.setOAuth10a(true);
@@ -57,9 +63,9 @@ public class OAuthActivity extends Activity {
 		Intent i = this.getIntent();
 		if (i.getData() == null) {
 			try {
-                                // This is really important. If you were able to register your real callback Uri with Twitter, and not some fake Uri
-                                // like I registered when I wrote this example, you need to send null as the callback Uri in this function call. Then
-                                // Twitter will correctly process your callback redirection
+				// This is really important. If you were able to register your real callback Uri with Twitter, and not some fake Uri
+                // like I registered when I wrote this example, you need to send null as the callback Uri in this function call. Then
+                // Twitter will correctly process your callback redirection                
 				String authUrl = mProvider.retrieveRequestToken(mConsumer, CALLBACK_URI.toString());
 				saveRequestInformation(mSettings, mConsumer.getToken(), mConsumer.getTokenSecret());
 				this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl)));
@@ -119,6 +125,12 @@ public class OAuthActivity extends Activity {
 				startActivity(i); // we either authenticated and have the extras or not, but we're going back
 				finish();
 			}
+		}
+		else {
+			Intent abort = new Intent(OAuthActivity.this, LoginActivity.class); 
+			abort.putExtra("aborted", true);
+			startActivity(abort);
+			finish();
 		}
 	}
 	

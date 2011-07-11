@@ -3,6 +3,8 @@ package at.tuwien.dsg.activities;
 import java.util.List;
 
 import com.markupartist.android.widget.ActionBar;
+import com.markupartist.android.widget.ActionBar.Action;
+import com.markupartist.android.widget.ActionBar.IntentAction;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -16,11 +18,11 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 import at.tuwien.dsg.R;
-import at.tuwien.dsg.common.ConnManager;
+import at.tuwien.dsg.common.ConnectionManager;
 import at.tuwien.dsg.common.TweetFlowManager;
 import at.tuwien.dsg.entities.Network;
 
-public class LoginActivity extends Activity {
+public class LoginActivity extends MyActivity {
 
 	private ConnectivityManager cm;
 	private ActionBar actionBar;
@@ -28,6 +30,7 @@ public class LoginActivity extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		this.TAG = "LoginActivity";
 		super.onCreate(savedInstanceState);
 		
 		cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -36,15 +39,20 @@ public class LoginActivity extends Activity {
 		
 		actionBar = (ActionBar) findViewById(R.id.actionbar);
 		
+		final Action requestsIntentAction = new IntentAction(this, new Intent(this, LoginActivity.class), R.drawable.ic_title_home_default);
+		actionBar.setHomeAction(requestsIntentAction);
 		actionBar.setTitle("Login");
 		
 		// TODO Why intent doesn't contain data?
 		Intent intent = getIntent();
-		if(intent.getData() != null) {
-			Toast.makeText(this, "Error while logging in, probably you have to change"
-					+ " your network's base-url!", Toast.LENGTH_LONG);
-		}
+		Bundle extras = intent.getExtras();
 		
+		if(extras != null) {
+			if(extras.getBoolean("aborted")) {
+				Toast.makeText(this, "Error while logging in, probably you have to change"
+						+ " your network's base-url!", Toast.LENGTH_LONG);
+			}
+		}
 		
 		tfm = TweetFlowManager.getInstance(this, null);
 		
@@ -71,8 +79,8 @@ public class LoginActivity extends Activity {
             		builder.setItems(items, new DialogInterface.OnClickListener() {
             		    public void onClick(DialogInterface dialog, int itemIndex) {
             		    	
-            		        // ConnManager.getInstance(getApplicationContext(), null).initWithNetwork(n.get(itemIndex)); 
-            		    	ConnManager.restartConnectionManagerWithNewNetwork(n.get(itemIndex));
+            		        // ConnectionManager.getInstance(getApplicationContext(), null).initWithNetwork(n.get(itemIndex)); 
+            		    	ConnectionManager.restartConnectionManagerWithNewNetwork(n.get(itemIndex));
             		        
             		        startActivity(new Intent(LoginActivity.this, OAuthActivity.class));
             		    }

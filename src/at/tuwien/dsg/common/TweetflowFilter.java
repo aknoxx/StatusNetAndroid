@@ -21,10 +21,10 @@ public class TweetflowFilter {
 	
 	private final String requestPatternString = 
 		"( )*" + 
-		"(\\[)?" +	// optional begin of closed sequence
-		"[A-Z]{2}" +
-		"( @\\w+)?" +						// optional @addressedUser
-		" \\w+\\.\\w+" +						// operation.service
+		"(\\[)?" +			// optional begin of closed sequence
+		"[A-Z]{2}" +		// the qualifier
+		"( @\\w+)?" +		// optional @addressedUser
+		" \\w+\\.\\w+" +	// operation.service
 		"( http://[\\S\\./]+)?" +			// optional url
 		"(\\?\\w+=\\S+(&\\w+=\\S+)+)?" +	// optional querystring
 		"( \\[@\\w+\\.\\w+\\?=\\w+\\])?" +	// optional condition
@@ -86,18 +86,17 @@ public class TweetflowFilter {
 		serviceResultAccessPattern = Pattern.compile("@\\w+\\.\\w+\\.\\w+\\?");
 	}
 	
-	static List<MatchResult> findMatches( String pattern, String s )
+	private static List<MatchResult> findMatches(String pattern, String text)
 	{
 		List<MatchResult> results = new ArrayList<MatchResult>();
 		
-		  for ( Matcher m = Pattern.compile(pattern).matcher(s); m.find(); )
-	
-		    results.add( m.toMatchResult() );
-	
-		  return results;
+		for (Matcher m = Pattern.compile(pattern).matcher(text); m.find();) {
+			results.add(m.toMatchResult());
+		}
+		return results;
 	}
 	
-	public List<Request> extractRequestFromUserStatus(ConnManager.UserStatus status) throws ParseException {
+	public List<Request> extractRequestFromUserStatus(ConnectionManager.UserStatus status) throws ParseException {
 		final String statusText = status.getText();
 		Request request = null;
 		Matcher matcher; 
@@ -111,7 +110,7 @@ public class TweetflowFilter {
 		}
 		
 		int ordering = 1;
-		for ( MatchResult r :  matches) {
+		for (MatchResult r : matches) {
 			request = new Request();
 			request.setClosedSequence(closedSequenceStarted);
 			

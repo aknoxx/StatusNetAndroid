@@ -50,14 +50,7 @@ public class RequestProvider extends ContentProvider {
             String sortOrder) {
     	
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-        //* For example:
-          //  *   setTables("foo, bar")
-         //   *   setTables("foo LEFT OUTER JOIN bar ON (foo.id = bar.foo_id)")
-        /*qb.setTables(REQUEST_TABLE_NAME + " LEFT OUTER JOIN " + HASHTAG_TABLE_NAME
-        		+ " ON (" + REQUEST_TABLE_NAME + "._id = " + HASHTAG_TABLE_NAME + ".requestId)");
-        		*/
         
-
         switch (sUriMatcher.match(uri)) {
 	        case REQUESTS:
 	        	qb.setTables(RequestDbAdapter.REQUEST_TABLE_NAME);
@@ -82,11 +75,11 @@ public class RequestProvider extends ContentProvider {
 
         // If no sort order is specified use the default
         String orderBy;
-        //if (TextUtils.isEmpty(sortOrder)) {
-            //orderBy = NotePad.Notes.DEFAULT_SORT_ORDER;
-        //} else {
+        if (sortOrder == null) {
+            orderBy = Requests.DEFAULT_SORT_ORDER;
+        } else {
             orderBy = sortOrder;
-        //}
+        }
 
         // Get the database and run the query
         SQLiteDatabase db = mDbAdapter.getReadableDatabase();
@@ -171,7 +164,7 @@ public class RequestProvider extends ContentProvider {
     }
     
     /**
-     * A test package can call this to get a handle to the database underlying NotePadProvider,
+     * A test package can call this to get a handle to the database underlying RequestProvider,
      * so it can insert test data into the database. The test case class is responsible for
      * instantiating the provider in a test context; {@link android.test.ProviderTestCase2} does
      * this during the call to setUp()

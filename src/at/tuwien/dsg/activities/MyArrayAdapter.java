@@ -52,7 +52,6 @@ public class MyArrayAdapter extends ArrayAdapter<Request> {
 			holder = new ViewHolder();
 			holder.infoView = (TextView) rowView.findViewById(R.id.request_info);
 			holder.requestView = (TextView) rowView.findViewById(R.id.request);
-			//holder.imageView = (ImageView) rowView.findViewById(R.id.icon);
 			rowView.setTag(holder);
 		} else {
 			holder = (ViewHolder) rowView.getTag();
@@ -62,18 +61,12 @@ public class MyArrayAdapter extends ArrayAdapter<Request> {
 		String time;
 		if(r.getCreatedAt().getDay() == new Date().getDay())
 		{
-			time = shortDate.format(r.getCreatedAt());
+			time = " today at " + shortDate.format(r.getCreatedAt());
 		}
 		else {
-			time = longDate.format(r.getCreatedAt());
+			time = " at " + longDate.format(r.getCreatedAt());
 		}
 		
-		/*
-		if(r.getQualifier().equals("SR")) {
-			holder.infoView.setTextColor(0xffffffff);
-			holder.requestView.setTextColor(0xccffff);
-		}	
-		*/ 
 		String status;
 		if(r.isSaved()) {
 			status = "Saved";
@@ -82,11 +75,9 @@ public class MyArrayAdapter extends ArrayAdapter<Request> {
 			status = "Unsaved";
 		}
 		
-		holder.infoView.setText("From " + r.getRequester() + " at " + time 
+		holder.infoView.setText("From " + r.getRequester() + time 
 				+ "\t\tStatus: " + status);	
 		holder.requestView.setText(r.getCompleteRequestText());
-		
-		
 
 		return rowView;
 	}

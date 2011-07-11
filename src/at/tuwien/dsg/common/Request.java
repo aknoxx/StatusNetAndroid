@@ -33,11 +33,6 @@ public final class Request {
          * The MIME type of a {@link #CONTENT_URI} sub-directory of a single note.
          */
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.google.note";
-
-        /**
-         * The default sort order for this table
-         */
-        public static final String DEFAULT_SORT_ORDER = "modified DESC";
         
         /**
          * The qualifier of the request
@@ -107,6 +102,11 @@ public final class Request {
         public static final String DEPENDENT_ON_TWEETID = "dependentOnTweetId";
         
         public static final String DEPENDENT_ON_NUMBER = "dependentOnNumber";
+        
+        /**
+         * The default sort order for this table
+         */
+        public static final String DEFAULT_SORT_ORDER = CREATED_AT + " DESC";
     }
     
     public static final class HashTags implements BaseColumns {
