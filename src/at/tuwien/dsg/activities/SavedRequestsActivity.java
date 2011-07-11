@@ -135,6 +135,7 @@ public class SavedRequestsActivity extends MyListActivity {
     	case DELETE_ID:
     		
     		tfm.deleteSavedRequests();
+    		
     		adapter.notifyDataSetChanged();
     		
     		Toast.makeText(this, "All saved Requests deleted!", Toast.LENGTH_LONG)

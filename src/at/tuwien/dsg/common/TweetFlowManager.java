@@ -2,6 +2,7 @@ package at.tuwien.dsg.common;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -160,7 +161,7 @@ public class TweetFlowManager{
 				iter.remove();
 			}
 		}
-		refreshFilteredRequests();
+		refreshFilteredSavedRequests();
 	}
 	
 	public List<Network> getAllNetworks() {
@@ -274,21 +275,14 @@ public class TweetFlowManager{
 		if((requests = extractRequestFromUserStatus(status)) != null) {
 			
 			for (Request r : requests) {
-				if(dd.getRequests().isEmpty()) {
-					dd.getRequests().add(r);
-				}
-				else {
-					if(r.getCreatedAt().getTime() 
-							>= dd.getRequests().get(0).getCreatedAt().getTime()) {
-						dd.getRequests().add(0, r);
-					}
-					else {
-						dd.getRequests().add(r);
-					}
-				}
-				
-				dd.setNewestReceivedId(status.getId());
-			}			
+				dd.getRequests().add(r);
+				if(status.getId() > dd.getNewestReceivedId()) {
+					dd.setNewestReceivedId(status.getId());
+				}				
+			}
+			
+			// sort by createdAt, DESC
+			Collections.sort(dd.getRequests());			
 			refreshFilteredRequests();
 		}	
 	}
@@ -342,6 +336,9 @@ public class TweetFlowManager{
 		}
 		
 		Cursor cRequests = requestsProvider.query(Requests.CONTENT_URI, REQUEST_PROJECTION, null, null, null);
+		Cursor htc = null;
+		Cursor cc = null;
+		Cursor vc = null;
 		
 		// cpc.release();
 		
@@ -377,7 +374,7 @@ public class TweetFlowManager{
 					long id = cRequests.getLong(idColumn);
 					r.setDbId(id);
 					
-					Cursor htc = hashTagsProvider.query(HashTags.CONTENT_URI, HASHTAG_PROJECTION, 
+					htc = hashTagsProvider.query(HashTags.CONTENT_URI, HASHTAG_PROJECTION, 
 								HashTags.REQUEST_ID + "=?", new String[] { ""+id }, null);
 					
 					if(htc != null) {
@@ -395,7 +392,7 @@ public class TweetFlowManager{
 						}
 					}
 					
-					Cursor cc = conditionsProvider.query(Conditions.CONTENT_URI, CONDITION_PROJECTION, 
+					cc = conditionsProvider.query(Conditions.CONTENT_URI, CONDITION_PROJECTION, 
 								Conditions.REQUEST_ID + "=?", new String[] { ""+id }, null);
 					
 					if(cc != null) {
@@ -414,7 +411,7 @@ public class TweetFlowManager{
 						}
 					}
 					
-					Cursor vc = variablesProvider.query(Variables.CONTENT_URI, VARIABLE_PROJECTION,
+					vc = variablesProvider.query(Variables.CONTENT_URI, VARIABLE_PROJECTION,
 								Variables.REQUEST_ID + "=?", new String[] { ""+id }, null);
 					
 					if(vc != null) {
@@ -435,6 +432,15 @@ public class TweetFlowManager{
 					cRequests.moveToNext();
 				}
 				cRequests.close();
+				if(htc != null) {
+					htc.close();
+				}
+				if(vc != null) {
+					vc.close();
+				}
+				if(cc != null) {
+					cc.close();
+				}
 			}
 		}
 		//dd.getRequests().addAll(dbAdapter.loadAllRequests());

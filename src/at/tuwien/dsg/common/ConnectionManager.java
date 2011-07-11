@@ -42,10 +42,10 @@ import at.tuwien.dsg.entities.Urls;
 
 public class ConnectionManager {
 	private static final String TAG = "ConnectionManager";
-	
-	
+		
 	private static Network currentNetwork; 
 	private static Urls urls;
+	private static String username;
 	
 	ProgressDialog postDialog = null;
 	
@@ -135,7 +135,7 @@ public class ConnectionManager {
 	}
 
 	private String getUserName(JSONObject credentials) {
-		return credentials.optString("name", ctx.getString(R.string.bad_value));
+		return credentials.optString("screen_name", ctx.getString(R.string.bad_value));
 	}
 	
 	private String getLastTweet(JSONObject credentials) {
@@ -172,6 +172,7 @@ public class ConnectionManager {
 			mConsumer.sign(get);
 			String response = mClient.execute(get, new BasicResponseHandler());
 			jso = new JSONObject(response);
+			username = getUserName(jso);
 			Log.d(TAG, "authenticatedQuery: " + jso.toString(2));
 		} catch (OAuthMessageSignerException e) {
 			e.printStackTrace();
@@ -289,5 +290,13 @@ public class ConnectionManager {
 	public void logout() {
 		SharedPreferences.Editor editor = mSettings.edit();
 		editor.putBoolean(LOGGEDIN, false);
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getUsername() {
+		return username;
 	}
 }

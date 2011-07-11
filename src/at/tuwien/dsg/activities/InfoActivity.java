@@ -69,9 +69,11 @@ public class InfoActivity extends MyActivity {
 		TextView tvNetwork = (TextView) findViewById(R.id.tv_Network);
 		TextView tvBaseUrl = (TextView) findViewById(R.id.tv_BaseUrl);
 		
-		tvUsername.setText("Username");
-		tvNetwork.setText(ConnectionManager.getInstance(this).getCurrentNetwork().getName());
-		tvBaseUrl.setText(ConnectionManager.getInstance(this).getCurrentNetwork().getRestBaseURL());
+		ConnectionManager cm = ConnectionManager.getInstance(this);
+		
+		tvUsername.setText(cm.getUsername());
+		tvNetwork.setText(cm.getCurrentNetwork().getName());
+		tvBaseUrl.setText(cm.getCurrentNetwork().getRestBaseURL());
 	}
 	
 	private void redirectToLogin() {

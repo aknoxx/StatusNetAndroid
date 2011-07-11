@@ -282,6 +282,7 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 							ConnectionManager.getInstance(getApplicationContext()).getUrls()
 							.getHomeTimelineUrlString(),
 								newestId, null, null, i+1);
+					
 					array = mConnectionManager.getTimeline(ts);
 					
 					if(array != null) {
@@ -295,6 +296,27 @@ public class TweetflowActivity extends MyListActivity {// extends ActionBarActiv
 						} catch (JSONException e) {
 							return false;
 						}
+					}
+				}
+			}
+			else {
+				ts = mConnectionManager.new TimelineSelector(
+						ConnectionManager.getInstance(getApplicationContext()).getUrls()
+						.getHomeTimelineUrlString(),
+							newestId, null, null, null);
+				
+				array = mConnectionManager.getTimeline(ts);
+				
+				if(array != null) {
+					try {
+						for(int j = array.length()-1; j >=0 ; j--) {
+							JSONObject status = array.getJSONObject(j);
+							ConnectionManager.UserStatus s = mConnectionManager.new UserStatus(status);
+							tfm.addUserStatus(s);
+						}						
+						
+					} catch (JSONException e) {
+						return false;
 					}
 				}
 			}

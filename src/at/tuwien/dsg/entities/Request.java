@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Request implements Serializable {
+public class Request implements Serializable, Comparable<Request> {
 
 	private static final long serialVersionUID = -8448411208707721327L;
 	
@@ -231,5 +231,22 @@ public class Request implements Serializable {
 
 	public Integer getDependentOrderNumber() {
 		return dependentOrderNumber;
+	}
+
+	// order Requests with descending createdAt
+	@Override
+	public int compareTo(Request another) {
+		if(!(another instanceof Request)){
+            throw new ClassCastException("Invalid object");
+        }
+       
+        long createdAt = ((Request) another).getCreatedAt().getTime();
+       
+        if(this.getCreatedAt().getTime() > createdAt)    
+            return -1;
+        else if (this.getCreatedAt().getTime() < createdAt)
+            return 1;
+        else
+            return 0;
 	}
 }
